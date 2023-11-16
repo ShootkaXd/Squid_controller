@@ -24,9 +24,11 @@ def scan_local_network(ip):
 
     devices = []
     for sent, received in result:
-        devices.append({'ip': received.psrc, 'mac': received.hwsrc})
+        devices.append({'ip': received.psrc, 'mac': received.hwsrc.upper()})
 
     return devices
+
+
 def update_database_with_devices():
     # Сканируем локальную сеть
     local_network_ip = "192.168.118.0/24"
@@ -60,10 +62,8 @@ def update_database_with_devices():
 local_network_ip = "192.168.118.0/24"
 devices = scan_local_network(local_network_ip)
 
-
 login_manager = LoginManager(app)
 update_database_with_devices()
-
 
 
 class LoginForm(FlaskForm):
@@ -159,6 +159,7 @@ def block_site():
 
 
 @app.route('/users')
+@login_required
 def users():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
@@ -166,7 +167,7 @@ def users():
     users = cursor.fetchall()
     conn.close()
 
-    return render_template('user.html', users=users)
+    return render_template('users.html', users=users)
 
 
 @app.route('/blocked_sites')
