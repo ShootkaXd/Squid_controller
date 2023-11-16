@@ -1,7 +1,7 @@
 import socket
 from datetime import timedelta
 from scapy.all import srp
-from scapy.layers.l2 import ARP, Ether
+from scapy.layers.l2 import ARP, Ether, srp
 from database import *
 from flask import Flask, render_template, redirect, url_for, request
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
@@ -9,16 +9,61 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired
 import psutil
-from flask_sslify import SSLify
 
 app = Flask(__name__)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
+
+def scan_local_network(ip):
+    arp_request = ARP(pdst=ip)
+    ether_frame = Ether(dst="ff:ff:ff:ff:ff:ff")  # Broadcast MAC address
+
+    packet = ether_frame / arp_request
+    result = srp(packet, timeout=3, verbose=0)[0]
+
+    devices = []
+    for sent, received in result:
+        devices.append({'ip': received.psrc, 'mac': received.hwsrc})
+
+    return devices
+def update_database_with_devices():
+    # Сканируем локальную сеть
+    local_network_ip = "192.168.118.0/24"
+    devices = scan_local_network(local_network_ip)
+
+    # Добавляем устройства в базу данных
+    for device in devices:
+        ip_address = device['ip']
+        mac_address = device['mac']
+        username = "default"  # Замените это на логику получения имени пользователя, если возможно
+        department = "default"  # Замените это на логику получения отдела, если возможно
+        number_cabinet = "default"  # Замените это на логику получения номера кабинета, если возможно
+
+        # Проверяем, что устройство еще не добавлено
+        conn = sqlite3.connect('access_control.db')
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac_address,))
+        existing_device = cursor.fetchone()
+
+        if not existing_device:
+            # Добавляем устройство в базу данных
+            cursor.execute(
+                'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
+                (username, ip_address, mac_address, department, number_cabinet))
+            conn.commit()
+
+        conn.close()
+
+
+# Пример использования
+local_network_ip = "192.168.118.0/24"
+devices = scan_local_network(local_network_ip)
+
+
 login_manager = LoginManager(app)
+update_database_with_devices()
 
-
-# sslify = SSLify(app)
 
 
 class LoginForm(FlaskForm):
@@ -32,7 +77,7 @@ class User(UserMixin):
         self.id = user_id
 
 
-users_db = {'root': {'password': 'formula912'}}
+users_db = {'test': {'password': 'test'}}
 
 
 @login_manager.user_loader
@@ -114,7 +159,6 @@ def block_site():
 
 
 @app.route('/users')
-@login_required
 def users():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
@@ -122,7 +166,7 @@ def users():
     users = cursor.fetchall()
     conn.close()
 
-    return render_template('users.html', users=users)
+    return render_template('user.html', users=users)
 
 
 @app.route('/blocked_sites')
