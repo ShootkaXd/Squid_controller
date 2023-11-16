@@ -1,18 +1,24 @@
+import socket
+from datetime import timedelta
 from scapy.all import srp
 from scapy.layers.l2 import ARP, Ether
 from database import *
 from flask import Flask, render_template, redirect, url_for, request
-from flask_login import LoginManager, UserMixin, login_user, login_required
+from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
 from wtforms.validators import InputRequired
-from flask_wtf.csrf import CSRFProtect
+import psutil
+from flask_sslify import SSLify
 
 app = Flask(__name__)
 
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 login_manager = LoginManager(app)
+
+
+# sslify = SSLify(app)
 
 
 class LoginForm(FlaskForm):
@@ -54,6 +60,7 @@ def index():
 
 
 @app.route('/remove_user', methods=['POST'])
+@login_required
 def allow_access():
     username = request.form.get('username')
     ip_address = request.form.get('ip_address')
@@ -83,13 +90,14 @@ def get_mac_address(ip_address):
     result = srp(packet, timeout=3, verbose=0)[0]
 
     if result:
-        mac_address = result[0][1].hwsrc.upper()  # Convert to uppercase
+        mac_address = result[0][1].hwsrc.upper()
         return mac_address
     else:
         return None
 
 
 @app.route('/block_site', methods=['POST'])
+@login_required
 def block_site():
     site_url = request.form.get('site_url')
 
@@ -106,6 +114,7 @@ def block_site():
 
 
 @app.route('/users')
+@login_required
 def users():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
@@ -117,6 +126,7 @@ def users():
 
 
 @app.route('/blocked_sites')
+@login_required
 def blocked_sites():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
@@ -127,10 +137,70 @@ def blocked_sites():
     return render_template('blocked_sites.html', blocked_sites=blocked_sites)
 
 
+@app.route('/monitoring')
+@login_required
+def monitoring():
+    # Get system information using psutil
+    cpu_percent = psutil.cpu_percent()
+    memory_info = psutil.virtual_memory()
+    disk_info = psutil.disk_usage('/')
+
+    # Get network traffic information
+    network_info = psutil.net_io_counters(pernic=True)
+
+    # Extract data for the first network interface (you may need to adjust this based on your requirements)
+    network_traffic = network_info[list(network_info.keys())[0]]
+    sent_bytes = network_traffic.bytes_sent
+    received_bytes = network_traffic.bytes_recv
+
+    # Render the monitoring template with the collected information
+    return render_template('monitoring.html', cpu_percent=cpu_percent, memory_info=memory_info,
+                           disk_info=disk_info, sent_bytes=sent_bytes, received_bytes=received_bytes)
+
+
+@app.template_filter('format_uptime')
+def format_uptime(uptime):
+    # Convert uptime to timedelta object
+    uptime_delta = timedelta(seconds=uptime)
+
+    # Format the timedelta as hh:mm:ss
+    formatted_uptime = str(uptime_delta).split('.')[0]
+    return formatted_uptime
+
+
+def get_system_info():
+    # Get system information using psutil
+    ip_address = socket.gethostbyname(socket.gethostname())
+    hostname = socket.gethostname()
+    uptime = psutil.boot_time()
+
+    return ip_address, hostname, uptime
+
+
+app.jinja_env.filters['format_uptime'] = format_uptime
+
+
+@app.route('/system')
+@login_required
+def system():
+    # Get system information
+    ip_address, hostname, uptime = get_system_info()
+
+    # Additional system information (replace with actual values)
+    sent_bytes = 1000000
+    received_bytes = 2000000
+
+    # Render the monitoring template with the collected information
+    return render_template('system.html', ip_address=ip_address, hostname=hostname, uptime=uptime,
+                           cpu_percent=psutil.cpu_percent(), memory_info=psutil.virtual_memory(),
+                           disk_info=psutil.disk_usage('/'), sent_bytes=sent_bytes, received_bytes=received_bytes)
+
+
 ################### Удалить ###################
 
 
 @app.route('/remove_user/<user_id>')
+@login_required
 def remove_user(user_id):
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
@@ -142,6 +212,7 @@ def remove_user(user_id):
 
 
 @app.route('/remove_site/<site_id>')
+@login_required
 def remove_site(site_id):
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
@@ -153,4 +224,4 @@ def remove_site(site_id):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='192.168.118.13', port=5000)

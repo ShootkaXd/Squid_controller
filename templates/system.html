@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>System Information</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+<div class="container">
+    <h1>System Information</h1>
+
+    <p><strong>Hostname:</strong> {{ hostname }}</p>
+    <p><strong>IP Address:</strong> {{ ip_address }}</p>
+    <p><strong>Uptime:</strong> {{ uptime|format_uptime }}</p>
+</div>
+
+</body>
+</html>

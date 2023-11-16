@@ -1,46 +1,60 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title>Пользователи с разрешенным доступом</title>
-        <style>
-            table{
-                border-collapse: collapse;
-                width: 100%;
-            }
-            th, td {
-                border: 1px solid black;
-                padding: 8px;
-                text-align: left;
-            }
-            th {
-                background-color: #f2f2f2;
-            }
-        </style>
-    </head>
-    <body>
-        <h1>Пользователи с разрешенным доступом</h1>
+<head>
+    <title>Пользователи с разрешенным доступом</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='search.css') }}">
+</head>
+<body>
+    <h1>Пользователи с разрешенным доступом</h1>
 
-        <table>
-            <tr>
-                <th>ID</th>
-                <th>Имя пользователя</th>
-                <th>IP-адрес</th>
-                <th>MAC-адрес</th>
-                <th>Отдел</th>
-                <th>Номер кабинета</th>
-                <th>Удалить</th>
-            </tr>
-            {% for user in users %}
-            <tr>
-                <td>{{ user[0] }}</td>
-                <td>{{ user[1] }}</td>
-                <td>{{ user[2] }}</td>
-                <td>{{ user[3] }}</td>
-                <td>{{ user[4] }}</td>
-                <td>{{ user[5] }}</td>
-                <td><a href="/remove_user/{{ user[0] }}">Удалить</a></td>
-            </tr>
-            {% endfor %}
-        </table>
-    </body>
+    <div id="searchContainer">
+        <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя">
+        <button id="searchButton" onclick="filterUsers()">Искать</button>
+    </div>
+
+    <table id="usersTable">
+        <tr>
+            <th>ID</th>
+            <th>Имя пользователя</th>
+            <th>IP-адрес</th>
+            <th>MAC-адрес</th>
+            <th>Отдел</th>
+            <th>Номер кабинета</th>
+            <th>Удалить</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user[0] }}</td>
+            <td>{{ user[1] }}</td>
+            <td>{{ user[2] }}</td>
+            <td>{{ user[3] }}</td>
+            <td>{{ user[4] }}</td>
+            <td>{{ user[5] }}</td>
+            <td><a href="/remove_user/{{ user[0] }}">Удалить</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <script>
+        function filterUsers() {
+            var input, filter, table, tr, td, i, txtValue;
+            input = document.getElementById("searchInput");
+            filter = input.value.toUpperCase();
+            table = document.getElementById("usersTable");
+            tr = table.getElementsByTagName("tr");
+
+            for (i = 1; i < tr.length; i++) {
+                td = tr[i].getElementsByTagName("td")[1];  // Column index for username
+                if (td) {
+                    txtValue = td.textContent || td.innerText;
+                    if (txtValue.toUpperCase().indexOf(filter) > -1) {
+                        tr[i].style.display = "";
+                    } else {
+                        tr[i].style.display = "none";
+                    }
+                }
+            }
+        }
+    </script>
+</body>
 </html>
