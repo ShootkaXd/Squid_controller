@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Пользователи с разрешенным доступом</title>
+        <style>
+            table{
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Пользователи с разрешенным доступом</h1>
+
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Имя пользователя</th>
+                <th>IP-адрес</th>
+                <th>MAC-адрес</th>
+                <th>Отдел</th>
+                <th>Номер кабинета</th>
+                <th>Удалить</th>
+            </tr>
+            {% for user in users %}
+            <tr>
+                <td>{{ user[0] }}</td>
+                <td>{{ user[1] }}</td>
+                <td>{{ user[2] }}</td>
+                <td>{{ user[3] }}</td>
+                <td>{{ user[4] }}</td>
+                <td>{{ user[5] }}</td>
+                <td><a href="/remove_user/{{ user[0] }}">Удалить</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>

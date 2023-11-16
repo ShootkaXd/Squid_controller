@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Заблокированные сайты</title>
+        <style>
+            table{
+                border-collapse: collapse;
+                width: 100%;
+            }
+            th, td {
+                border: 1px solid black;
+                padding: 8px;
+                text-align: left;
+            }
+            th {
+                background-color: #f2f2f2;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Заблокированные сайты</h1>
+
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>URL сайта</th>
+                <th>Удалить</th>
+            </tr>
+            {% for site in blocked_sites %}
+            <tr>
+                <td>{{ site[0] }}</td>
+                <td>{{ site[1] }}</td>
+                <td><a href="/remove_site/{{ site[0] }}">Удалить</a></td>
+            </tr>
+            {% endfor %}
+        </table>
+    </body>
+</html>
