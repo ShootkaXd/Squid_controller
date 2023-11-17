@@ -1,0 +1,74 @@
+document.addEventListener('DOMContentLoaded', function () {
+    // Call fetchUsers when the page loads
+    fetchUsers();
+
+    // ... (your existing JavaScript code for filterUsers, saveChanges, confirmAccess)
+
+    // Fetch users from the server
+    async function fetchUsers() {
+        try {
+            const response = await fetch('/get_users');
+            const users = await response.json();
+
+            // Update the main users table
+            updateUsersTable(users, 'usersTable');
+        } catch (error) {
+            console.error('Error fetching users:', error);
+        }
+    }
+
+    // Fetch new users from the server
+    async function fetchNewUsers() {
+        try {
+            const response = await fetch('/get_new_users');
+            const newUsers = await response.json();
+
+            // Update the new users table
+            updateUsersTable(newUsers, 'newUsersTable');
+        } catch (error) {
+            console.error('Error fetching new users:', error);
+        }
+    }
+
+    // Function to update the users table
+    function updateUsersTable(users, tableId) {
+        const table = document.getElementById(tableId);
+
+        // Clear existing rows from the table
+        table.innerHTML = '';
+
+        // Add new rows to the table
+        users.forEach(user => {
+            const row = table.insertRow();
+            row.dataset.mac = user.mac;  // Set the MAC address as a data attribute for future reference
+
+            const ipCell = row.insertCell(0);
+            const macCell = row.insertCell(1);
+            const usernameCell = row.insertCell(2);
+            const departmentCell = row.insertCell(3);
+            const cabinetCell = row.insertCell(4);
+            const actionsCell = row.insertCell(5);
+
+            ipCell.textContent = user.ip;
+            macCell.textContent = user.mac;
+            usernameCell.textContent = user.username;
+            departmentCell.textContent = user.department;
+            cabinetCell.textContent = user.number_cabinet;
+
+            // Add an "Allow Access" button for new users
+            if (tableId === 'newUsersTable') {
+                const allowAccessButton = document.createElement('button');
+                allowAccessButton.textContent = 'Allow Access';
+                allowAccessButton.addEventListener('click', function () {
+                    const mac = row.dataset.mac;
+                    confirmAccess(mac);
+                });
+
+                actionsCell.appendChild(allowAccessButton);
+            }
+        });
+    }
+
+    // Call fetchNewUsers when the page loads
+    fetchNewUsers();
+});

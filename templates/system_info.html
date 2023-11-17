@@ -1,0 +1,50 @@
+<body>
+    <h1>Real-time System Monitoring</h1>
+
+    <div id="cpu-chart-container">
+        <canvas id="cpu-chart" width="400" height="200"></canvas>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+
+    <script>
+        const socket = io.connect();
+
+        // Initialize the CPU usage chart
+        const cpuCtx = document.getElementById('cpu-chart').getContext('2d');
+        const cpuChart = new Chart(cpuCtx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'CPU Usage (%)',
+                    borderColor: 'rgb(75, 192, 192)',
+                    data: [],
+                }],
+            },
+            options: {
+                scales: {
+                    x: [{
+                        type: 'linear',
+                        position: 'bottom',
+                    }],
+                    y: [{
+                        ticks: {
+                            beginAtZero: true,
+                            max: 100,
+                        },
+                    }],
+                },
+            },
+        });
+
+        // Handle system_info events from the server
+        socket.on('system_info', function (data) {
+            // Update the CPU chart with the received CPU usage
+            cpuChart.data.labels.push('');
+            cpuChart.data.datasets[0].data.push(data.cpu_percent);
+            cpuChart.update();
+        });
+    </script>
+</body>
