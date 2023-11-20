@@ -21,6 +21,16 @@ CREATE TABLE IF NOT EXISTS blocked_sites(
                site_url TEXT NOT NULL
 )''')
 
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS new_users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        ip_address TEXT,
+        mac_address TEXT,
+        username TEXT,
+        department TEXT,
+        number_cabinet TEXT
+    )
+''')
 
 conn.commit()
 conn.close()

@@ -298,7 +298,6 @@ def update_user():
                 department = user_data.get('department')
                 cabinet = user_data.get('cabinet')
 
-                # Check if the user already exists in the database
                 cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac,))
                 existing_user = cursor.fetchone()
 
