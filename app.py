@@ -12,6 +12,7 @@ from wtforms.validators import InputRequired
 import psutil
 import asyncio
 import aiosqlite
+import subprocess
 
 app = Flask(__name__)
 
@@ -102,8 +103,7 @@ def emit_system_info():
 
     network_info = psutil.net_io_counters(pernic=True)
     network_traffic = network_info[list(network_info.keys())[0]]
-    sent_bytes = network_traffic.bytes_sent
-    received_bytes = network_traffic.bytes_recv
+    sent_bytes, received_bytes = network_traffic.bytes_sent, network_traffic.bytes_recv
 
     system_info = {
         'cpu_percent': cpu_percent,
@@ -321,63 +321,37 @@ def update_user():
 
 
 @app.route('/confirm_access', methods=['POST'])
+@login_required
 def confirm_access():
     try:
-        data = request.get_json()
-        mac = data.get('mac')
-
-        # Move the user from the new users table to the main users table
+        # Move all new users from the new_users table to the main users table
         conn = sqlite3.connect('access_control.db')
         cursor = conn.cursor()
 
-        # Retrieve the new user details
-        cursor.execute('SELECT * FROM new_users WHERE mac_address = ?', (mac,))
-        new_user = cursor.fetchone()
+        # Retrieve all new users
+        cursor.execute('SELECT * FROM new_users')
+        new_users = cursor.fetchall()
 
-        if new_user:
-            # Insert the new user into the main users table
+        # Insert new users into the main users table
+        for user in new_users:
             cursor.execute(
                 'INSERT INTO users (ip_address, mac_address, username, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
-                new_user[1:]
+                user[1:]
             )
 
-            # Remove the new user from the new_users table
-            cursor.execute('DELETE FROM new_users WHERE mac_address = ?', (mac,))
+        # Remove all new users from the new_users table
+        cursor.execute('DELETE FROM new_users')
+        conn.commit()
+        conn.close()
 
-            conn.commit()
-            conn.close()
-
-            return jsonify({'status': 'success'})
-        else:
-            return jsonify({'status': 'error', 'message': 'User not found in new_users table'})
+        return jsonify({'status': 'success'})
 
     except Exception as e:
         print(e)
         return jsonify({'status': 'error', 'message': 'Failed to confirm access'})
 
 
-@app.route('/get_users')
-def get_users():
-    try:
-        conn = sqlite3.connect('access_control.db')
-        cursor = conn.cursor()
-
-        cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet FROM users')
-        users = cursor.fetchall()
-
-        conn.close()
-
-        # Convert data to a list of dictionaries for JSON serialization
-        user_data = [
-            {'ip': user[0], 'mac': user[1], 'username': user[2], 'department': user[3], 'number_cabinet': user[4]} for
-            user in users]
-
-        return jsonify(user_data)
-    except Exception as e:
-        print(e)
-        return jsonify({'error': 'Failed to fetch users'})
-
-
+# Add a new route to get new users
 @app.route('/get_new_users')
 def get_new_users():
     try:
@@ -400,19 +374,26 @@ def get_new_users():
         return jsonify({'error': 'Failed to fetch new users'})
 
 
+@socketio.on('toggle_access')
+def handle_toggle_access(data):
+    try:
+        mac_address = data.get('mac')
+        access_status = data.get('access')
+
+        # Update the database with the received access status
+        with sqlite3.connect('access_control.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('UPDATE users SET access = ? WHERE mac_address = ?', (access_status, mac_address))
+            conn.commit()
+
+        # Notify all connected clients about the change
+        socketio.emit('access_status_updated', {'mac': mac_address, 'access': access_status}, broadcast=True)
+
+    except Exception as e:
+        print(f"Error toggling access: {e}")
+
+
 ################### Удалить ###################
-
-
-@app.route('/remove_user/<user_id>')
-@login_required
-def remove_user(user_id):
-    conn = sqlite3.connect('access_control.db')
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM users WHERE id = ?', (user_id,))
-    conn.commit()
-    conn.close()
-
-    return redirect(url_for('index'))
 
 
 @app.route('/remove_site/<site_id>')

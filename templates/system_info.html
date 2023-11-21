@@ -1,8 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time System Monitoring</title>
+    <link rel="stylesheet" type="text/css" href="css/system.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js">
+</head>
 <body>
-    <h1>Real-time System Monitoring</h1>
+    <div class="container">
+        <h1>Real-time System Monitoring</h1>
 
-    <div id="cpu-chart-container">
-        <canvas id="cpu-chart" width="400" height="200"></canvas>
+        <div class="charts-container">
+            <div class="chart">
+                <h2>CPU Usage</h2>
+                <canvas id="cpu-chart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="chart">
+                <h2>Memory Usage</h2>
+                <canvas id="memory-chart" width="400" height="200"></canvas>
+            </div>
+
+            <div class="chart">
+                <h2>Disk Usage</h2>
+                <canvas id="disk-chart" width="400" height="200"></canvas>
+            </div>
+        </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -11,40 +35,78 @@
     <script>
         const socket = io.connect();
 
-        // Initialize the CPU usage chart
+        // Initialize CPU Usage chart
         const cpuCtx = document.getElementById('cpu-chart').getContext('2d');
         const cpuChart = new Chart(cpuCtx, {
-            type: 'line',
+            type: 'doughnut',
             data: {
-                labels: [],
+                labels: ['Used CPU (%)', 'Free CPU (%)'],
                 datasets: [{
-                    label: 'CPU Usage (%)',
-                    borderColor: 'rgb(75, 192, 192)',
-                    data: [],
+                    data: [0, 100],
+                    backgroundColor: ['rgb(255, 99, 132)', 'rgb(255, 255, 255)'],
+                }],
+            },
+            options: {
+                cutout: '70%',
+                responsive: true,
+            },
+        });
+
+        // Initialize Memory Usage chart
+        const memoryCtx = document.getElementById('memory-chart').getContext('2d');
+        const memoryChart = new Chart(memoryCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Used Memory (MB)', 'Free Memory (MB)'],
+                datasets: [{
+                    label: 'Memory Usage',
+                    data: [0, 0],
+                    backgroundColor: ['rgb(54, 162, 235)', 'rgb(255, 255, 255)'],
                 }],
             },
             options: {
                 scales: {
-                    x: [{
-                        type: 'linear',
-                        position: 'bottom',
-                    }],
-                    y: [{
-                        ticks: {
-                            beginAtZero: true,
-                            max: 100,
-                        },
-                    }],
+                    y: {
+                        beginAtZero: true,
+                    },
                 },
+            },
+        });
+
+        // Initialize Disk Usage chart
+        const diskCtx = document.getElementById('disk-chart').getContext('2d');
+        const diskChart = new Chart(diskCtx, {
+            type: 'pie',
+            data: {
+                labels: ['Used Disk Space (GB)', 'Free Disk Space (GB)'],
+                datasets: [{
+                    data: [0, 0],
+                    backgroundColor: ['rgb(255, 99, 132)', 'rgb(255, 255, 255)'],
+                }],
+            },
+            options: {
+                cutout: '70%',
+                responsive: true,
             },
         });
 
         // Handle system_info events from the server
         socket.on('system_info', function (data) {
-            // Update the CPU chart with the received CPU usage
-            cpuChart.data.labels.push('');
-            cpuChart.data.datasets[0].data.push(data.cpu_percent);
+            // Update CPU Usage chart
+            cpuChart.data.datasets[0].data[0] = data.cpu_percent;
+            cpuChart.data.datasets[0].data[1] = 100 - data.cpu_percent;
             cpuChart.update();
+
+            // Update Memory Usage chart
+            memoryChart.data.datasets[0].data[0] = data.memory_used;
+            memoryChart.data.datasets[0].data[1] = data.memory_total - data.memory_used;
+            memoryChart.update();
+
+            // Update Disk Usage chart
+            diskChart.data.datasets[0].data[0] = data.disk_used;
+            diskChart.data.datasets[0].data[1] = data.disk_total - data.disk_used;
+            diskChart.update();
         });
     </script>
 </body>
+</html>

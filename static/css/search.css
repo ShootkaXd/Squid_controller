@@ -30,3 +30,22 @@
             border-radius: 4px;
             cursor: pointer;
         }
+        #newUsersTable, #usersTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        #newUsersTable th, #usersTable th, #newUsersTable td, #usersTable td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        #newUsersTable th, #usersTable th {
+            background-color: #f2f2f2;
+        }
+
+        #searchContainer {
+            margin-bottom: 20px;
+        }

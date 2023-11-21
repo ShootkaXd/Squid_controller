@@ -10,7 +10,8 @@ cursor.execute('''
         mac_address TEXT,
         username TEXT,
         department TEXT,
-        number_cabinet TEXT
+        number_cabinet TEXT,
+        access TEXT
     )
 ''')
 

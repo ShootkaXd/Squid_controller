@@ -4,62 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление доступом в Squid</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
-
 <body>
 
-    <div class="container">
-        <h1>Управление доступом</h1>
-        <form method="post" action="/remove_user">
-            <label for="username">Имя пользователя:</label>
-            <input type="text" name="username" id="username" required><br>
-            <label for="ip_address">IP-адрес:</label>
-            <input type="text" name="ip_address" id="ip_address" required><br>
-            <label for="department">Отдел:</label>
-            <input type="text" name="department" id="department" required><br>
-            <label for="number_cabinet">Номер кабинета:</label>
-            <input type="text" name="number_cabinet" id="number_cabinet" required><br>
-            <button type="submit">Разрешить доступ</button>
-        </form>
-
-        <script src="https://code.jquery.com/jquery-3.6.9.min.js"></script>
-        <script>
-            $(document).ready(function(){
-                $("#ip_address").keyup(function(){
-                    var ipAddress = $(this).val();
-                    $.ajax({
-                        type: 'POST',
-                        url: '/get_mac',
-                        data: JSON.stringify({'ip_address': ipAddress}),
-                        contentType: 'application/json',
-                        success: function(response){
-                            $('#mac_address').text(response['mac_address']);
-                        }
-                    });
-                });
-            });
-        </script>
-
-        <h1>Заблокировать сайт</h1>
-        <form method="post" action="/block_site">
-            <label for="site_url">URL сайта:</label>
-            <input type="text" name="site_url" id="site_url" required><br>
-            <button type="submit">Заблокировать сайт</button>
-        </form>
+    <div class="container mt-5">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="mb-0">Заблокировать сайт</h1>
+            </div>
+            <div class="card-body">
+                <form method="post" action="/block_site">
+                    <div class="form-group">
+                        <label for="site_url">URL сайта:</label>
+                        <input type="text" class="form-control" name="site_url" id="site_url" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Заблокировать сайт</button>
+                </form>
+            </div>
+        </div>
     </div>
 
-    <h2>Пользователи с разрешенным доступом</h2>
-    <a class="link" href="/users">Посмотреть список пользователей</a>
+    <div class="container mt-4">
+        <h2>Пользователи с разрешенным доступом</h2>
+        <a class="btn btn-secondary" href="/users">Посмотреть список пользователей</a>
+    </div>
 
-    <h2>Заблокированные сайты</h2>
-    <a class="link" href="/blocked_sites">Посмотреть список заблокированных сайтов</a>
+    <div class="container mt-4">
+        <h2>Заблокированные сайты</h2>
+        <a class="btn btn-secondary" href="/blocked_sites">Посмотреть список заблокированных сайтов</a>
+    </div>
 
-    <h2>Мониторинг системы</h2>
-    <a class="link" href="/monitoring">Посмотреть монитор системы</a>
+    <div class="container mt-4">
+        <h2>Мониторинг системы</h2>
+        <a class="btn btn-secondary" href="/monitoring">Посмотреть монитор системы</a>
+    </div>
 
-    <h2>Система</h2>
-    <a class="link" href="/system">Посмотреть систему</a>
+    <div class="container mt-4">
+        <h2>Система</h2>
+        <a class="btn btn-secondary" href="/system">Посмотреть систему</a>
+    </div>
 
 </body>
 </html>
