@@ -13,7 +13,6 @@ function filterUsers() {
             txtValueUsername = tdUsername.textContent || tdUsername.innerText;
             txtValueIP = tdIP.textContent || tdIP.innerText;
 
-            // Check if the filter text matches either username or IP
             if (txtValueUsername.toUpperCase().indexOf(filter) > -1 || txtValueIP.toUpperCase().indexOf(filter) > -1) {
                 tr[i].style.display = "";
             } else {
@@ -39,13 +38,11 @@ async function fetchNewUsers() {
 
     function updateNewUsersTable(newUsers) {
         const newUsersTable = document.getElementById('newUsersTable');
-        // Clear existing rows
         newUsersTable.innerHTML = '';
 
-        // Add new rows based on the received data
         newUsers.forEach(newUser => {
             const row = document.createElement('tr');
-            row.dataset.mac = newUser.mac;  // Set the MAC address as a data attribute
+            row.dataset.mac = newUser.mac;
             row.innerHTML = `
                 <td>${newUser.ip}</td>
                 <td>${newUser.mac}</td>
@@ -60,17 +57,15 @@ async function fetchNewUsers() {
         });
     }
 
-    // Call fetchNewUsers to populate newUsersTable when the page loads
     window.addEventListener('load', () => {
         fetchNewUsers();
-        fetchUsers(); // Populate the main users table as well
+        fetchUsers();
     });
 
 async function saveChanges() {
         const usersTable = document.getElementById('usersTable');
         const rows = usersTable.querySelectorAll('tbody tr');
 
-        // Iterate through the rows and collect data for each user
         const usersData = [];
         rows.forEach(row => {
             const cells = row.querySelectorAll('td');
@@ -84,8 +79,7 @@ async function saveChanges() {
             usersData.push(userData);
         });
 
-        // Now you can send the usersData to the server using fetch or another method
-        // For example:
+
         const response = await fetch('/update_user', {
             method: 'POST',
             headers: {
@@ -96,7 +90,6 @@ async function saveChanges() {
             }),
         });
 
-        // Check the response and handle accordingly
         if (response.ok) {
             console.log('Changes saved successfully!');
         } else {
@@ -104,23 +97,43 @@ async function saveChanges() {
         }
     }
 
-function toggleAccess(checkbox) {
-    const isChecked = checkbox.checked;
-    const macAddress = checkbox.parentElement.parentElement.dataset.mac;
+function toggleAccess(macAddress, currentStatus) {
+    $.ajax({
+        type: 'POST',
+        url: '/toggle_access',
+        data: {
+            macAddress: macAddress,
+            currentStatus: currentStatus
+        },
+        success: function (response) {
+            var newStatus = response.newStatus;
+            var statusElement = document.getElementById('status_' + macAddress);
+            var buttonElement = statusElement.nextElementSibling.querySelector('button');
 
-    // Toggle the access status locally
-    const accessStatus = isChecked ? 'Галочка' : 'Крестик';
-    updateAccessStatus(macAddress, accessStatus);
+            statusElement.innerText = newStatus ? 'Разрешен' : 'Запрещен';
 
-    // Update the access status in the database via Socket.IO
-    socket.emit('toggle_access', {'mac': macAddress, 'access': accessStatus});
+            buttonElement.innerText = newStatus ? 'Запретить доступ' : 'Разрешить доступ';
+        },
+        error: function (error) {
+            console.error('Ошибка при обновлении статуса пользователя:', error);
+        }
+    });
+    console.log(`Toggling access for ${macAddress}, currentStatus: ${currentStatus}`);
 }
 
-function updateAccessStatus(mac, access) {
-    // Update the access status locally
-    const tableCell = document.querySelector(`#usersTable td[data-mac="${mac}"]`);
-    if (tableCell) {
-        tableCell.textContent = access;
-    }
+function setInitialAccessStatus() {
+    const users = document.querySelectorAll('#usersTable tbody tr');
+    users.forEach(userRow => {
+        const macAddress = userRow.querySelector('td').innerText;
+        const statusElement = userRow.querySelector(`#status_${macAddress}`);
+        const buttonElement = userRow.querySelector('button');
+        const currentStatus = statusElement.innerText === 'Разрешен';
+
+        statusElement.innerText = currentStatus ? 'Разрешен' : 'Запрещен';
+
+        buttonElement.innerText = currentStatus ? 'Запретить доступ' : 'Разрешить доступ';
+
+        statusElement.style.backgroundColor = currentStatus ? 'green' : 'red';
+    });
 }
-});
+window.onload = setInitialAccessStatus;

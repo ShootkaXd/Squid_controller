@@ -1,18 +1,14 @@
-import socket
-from datetime import timedelta
-import socketio
-from flask_socketio import SocketIO
-from scapy.layers.l2 import ARP, Ether, srp
-from database import *
+import asyncio
 from flask import Flask, render_template, redirect, url_for, request, jsonify
 from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
-from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import InputRequired
+from flask_socketio import SocketIO
+from forms import LoginForm
+from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
+from database import User
 import psutil
-import asyncio
-import aiosqlite
-import subprocess
+import socket
+from datetime import timedelta
+import sqlite3
 
 app = Flask(__name__)
 
@@ -25,50 +21,6 @@ async def main():
     await update_database_with_devices()
 
 
-async def scan_local_network(ip):
-    try:
-        arp_request = ARP(pdst=ip)
-        ether_frame = Ether(dst="ff:ff:ff:ff:ff:ff")
-
-        packet = ether_frame / arp_request
-        result = srp(packet, timeout=3, verbose=0)[0]
-
-        devices = []
-        for sent, received in result:
-            devices.append({'ip': received.psrc, 'mac': received.hwsrc.upper()})
-
-        return devices
-    except Exception as e:
-        print(f"Error during network scan: {e}")
-
-
-async def update_database_with_devices():
-    try:
-        local_network_ip = "192.168.118.0/24"
-        devices = await scan_local_network(local_network_ip)
-
-        async with aiosqlite.connect('access_control.db') as conn:
-            async with conn.cursor() as cursor:
-                for device in devices:
-                    ip_address = device['ip']
-                    mac_address = device['mac']
-                    username = ""
-                    department = ""
-                    number_cabinet = ""
-
-                    await cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac_address,))
-                    existing_device = await cursor.fetchone()
-
-                    if not existing_device:
-                        await cursor.execute(
-                            'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
-                            (username, ip_address, mac_address, department, number_cabinet))
-                        await conn.commit()
-    except Exception as e:
-        print(f"Error during database update: {e}")
-
-
-# Пример использования
 local_network_ip = "192.168.118.0/24"
 devices = scan_local_network(local_network_ip)
 
@@ -76,15 +28,9 @@ login_manager = LoginManager(app)
 asyncio.run(main())
 
 
-class LoginForm(FlaskForm):
-    user_id = StringField('User ID', validators=[InputRequired()])
-    password = PasswordField('Password', validators=[InputRequired()])
-    submit = SubmitField('Login')
-
-
-class User(UserMixin):
-    def __init__(self, user_id):
-        self.id = user_id
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
 
 
 users_db = {'test': {'password': 'test'}}
@@ -119,11 +65,6 @@ def emit_system_info():
 @app.route('/monitoring_realtime')
 def monitor():
     return render_template('monitoring_realtime.html')
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User(user_id)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -168,20 +109,6 @@ def allow_access():
     return redirect(url_for('index'))
 
 
-def get_mac_address(ip_address):
-    arp = ARP(pdst=ip_address)
-    ether = Ether(dst="ff:ff:ff:ff:ff:ff")
-    packet = ether / arp
-
-    result = srp(packet, timeout=3, verbose=0)[0]
-
-    if result:
-        mac_address = result[0][1].hwsrc.upper()
-        return mac_address
-    else:
-        return None
-
-
 @app.route('/block_site', methods=['POST'])
 @login_required
 def block_site():
@@ -204,7 +131,7 @@ def block_site():
 def users():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet FROM users')
+    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet, access_allowed FROM users')
     users = cursor.fetchall()
     conn.close()
 
@@ -242,16 +169,13 @@ def monitoring():
 
 @app.template_filter('format_uptime')
 def format_uptime(uptime):
-    # Convert uptime to timedelta object
     uptime_delta = timedelta(seconds=uptime)
 
-    # Format the timedelta as hh:mm:ss
     formatted_uptime = str(uptime_delta).split('.')[0]
     return formatted_uptime
 
 
 def get_system_info():
-    # Get system information using psutil
     ip_address = socket.gethostbyname(socket.gethostname())
     hostname = socket.gethostname()
     uptime = psutil.boot_time()
@@ -265,14 +189,11 @@ app.jinja_env.filters['format_uptime'] = format_uptime
 @app.route('/system')
 @login_required
 def system():
-    # Get system information
     ip_address, hostname, uptime = get_system_info()
 
-    # Additional system information (replace with actual values)
     sent_bytes = 1000000
     received_bytes = 2000000
 
-    # Render the monitoring template with the collected information
     return render_template('system.html', ip_address=ip_address, hostname=hostname, uptime=uptime,
                            cpu_percent=psutil.cpu_percent(), memory_info=psutil.virtual_memory(),
                            disk_info=psutil.disk_usage('/'), sent_bytes=sent_bytes, received_bytes=received_bytes)
@@ -284,10 +205,8 @@ def update_user():
     try:
         data = request.get_json()
 
-        # Extract the list of users from the received data
         users_data = data.get('users')
 
-        # Update the database with the received user data
         with sqlite3.connect('access_control.db') as conn:
             cursor = conn.cursor()
 
@@ -302,12 +221,10 @@ def update_user():
                 existing_user = cursor.fetchone()
 
                 if existing_user:
-                    # Update the existing user's information
                     cursor.execute(
                         'UPDATE users SET username = ?, department = ?, number_cabinet = ? WHERE mac_address = ?',
                         (username, department, cabinet, mac))
                 else:
-                    # If the user doesn't exist, insert a new record
                     cursor.execute(
                         'INSERT INTO users (ip_address, mac_address, username, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
                         (ip, mac, username, department, cabinet))
@@ -324,22 +241,18 @@ def update_user():
 @login_required
 def confirm_access():
     try:
-        # Move all new users from the new_users table to the main users table
         conn = sqlite3.connect('access_control.db')
         cursor = conn.cursor()
 
-        # Retrieve all new users
         cursor.execute('SELECT * FROM new_users')
         new_users = cursor.fetchall()
 
-        # Insert new users into the main users table
         for user in new_users:
             cursor.execute(
                 'INSERT INTO users (ip_address, mac_address, username, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
                 user[1:]
             )
 
-        # Remove all new users from the new_users table
         cursor.execute('DELETE FROM new_users')
         conn.commit()
         conn.close()
@@ -351,7 +264,7 @@ def confirm_access():
         return jsonify({'status': 'error', 'message': 'Failed to confirm access'})
 
 
-# Add a new route to get new users
+
 @app.route('/get_new_users')
 def get_new_users():
     try:
@@ -363,7 +276,6 @@ def get_new_users():
 
         conn.close()
 
-        # Convert data to a list of dictionaries for JSON serialization
         new_user_data = [
             {'ip': user[0], 'mac': user[1], 'username': user[2], 'department': user[3], 'number_cabinet': user[4]} for
             user in new_users]
@@ -374,23 +286,35 @@ def get_new_users():
         return jsonify({'error': 'Failed to fetch new users'})
 
 
-@socketio.on('toggle_access')
-def handle_toggle_access(data):
-    try:
-        mac_address = data.get('mac')
-        access_status = data.get('access')
+@app.route('/toggle_access', methods=['POST'])
+def toggle_access():
+    mac_address = request.form.get('macAddress')
 
-        # Update the database with the received access status
-        with sqlite3.connect('access_control.db') as conn:
-            cursor = conn.cursor()
-            cursor.execute('UPDATE users SET access = ? WHERE mac_address = ?', (access_status, mac_address))
-            conn.commit()
+    # Ваш код для получения текущего статуса из базы данных
+    conn = sqlite3.connect('access_control.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT access_allowed FROM users WHERE mac_address = ?', (mac_address,))
+    current_status = cursor.fetchone()
 
-        # Notify all connected clients about the change
-        socketio.emit('access_status_updated', {'mac': mac_address, 'access': access_status}, broadcast=True)
+    if current_status is not None:
+        # Распаковываем кортеж и инвертируем текущий статус
+        current_status = not bool(current_status[0])
 
-    except Exception as e:
-        print(f"Error toggling access: {e}")
+        # Обновляем статус в базе данных
+        cursor.execute('UPDATE users SET access_allowed = ? WHERE mac_address = ?', (current_status, mac_address))
+        conn.commit()
+        print(f"Rows affected: {cursor.rowcount}")
+    else:
+        # Если запись не найдена, можно создать новую запись с заданным статусом
+        current_status = True  # Или любой другой статус по умолчанию
+        cursor.execute('INSERT INTO users (mac_address, access_allowed) VALUES (?, ?)', (mac_address, current_status))
+        conn.commit()
+        print(f"New user added with mac_address: {mac_address}")
+
+    conn.close()
+
+    # Возвращаем новый статус в формате JSON
+    return jsonify({'newStatus': current_status})
 
 
 ################### Удалить ###################

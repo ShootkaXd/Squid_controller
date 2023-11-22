@@ -1,5 +1,16 @@
 import sqlite3
 
+from flask_login import UserMixin
+
+from flask_login import UserMixin
+import aiosqlite
+import sqlite3
+
+
+class User(UserMixin):
+    def __init__(self, user_id):
+        self.id = user_id
+
 
 conn = sqlite3.connect('access_control.db')
 cursor = conn.cursor()
@@ -11,10 +22,9 @@ cursor.execute('''
         username TEXT,
         department TEXT,
         number_cabinet TEXT,
-        access TEXT
+        access_allowed BOOLEAN DEFAULT FALSE
     )
 ''')
-
 
 cursor.execute('''
 CREATE TABLE IF NOT EXISTS blocked_sites(

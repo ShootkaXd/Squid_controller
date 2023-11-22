@@ -1,10 +1,7 @@
 document.addEventListener('DOMContentLoaded', function () {
-    // Call fetchUsers when the page loads
     fetchUsers();
 
-    // ... (your existing JavaScript code for filterUsers, saveChanges, confirmAccess)
 
-    // Fetch users from the server
     async function fetchUsers() {
         try {
             const response = await fetch('/get_users');
@@ -17,7 +14,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Fetch new users from the server
     async function fetchNewUsers() {
         try {
             const response = await fetch('/get_new_users');
@@ -30,14 +26,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Function to update the users table
     function updateUsersTable(users, tableId) {
         const table = document.getElementById(tableId);
 
-        // Clear existing rows from the table
         table.innerHTML = '';
 
-        // Add new rows to the table
         users.forEach(user => {
             const row = table.insertRow();
             row.dataset.mac = user.mac;  // Set the MAC address as a data attribute for future reference
@@ -55,7 +48,6 @@ document.addEventListener('DOMContentLoaded', function () {
             departmentCell.textContent = user.department;
             cabinetCell.textContent = user.number_cabinet;
 
-            // Add an "Allow Access" button for new users
             if (tableId === 'newUsersTable') {
                 const allowAccessButton = document.createElement('button');
                 allowAccessButton.textContent = 'Allow Access';
@@ -69,6 +61,5 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Call fetchNewUsers when the page loads
     fetchNewUsers();
 });

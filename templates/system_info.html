@@ -35,7 +35,6 @@
     <script>
         const socket = io.connect();
 
-        // Initialize CPU Usage chart
         const cpuCtx = document.getElementById('cpu-chart').getContext('2d');
         const cpuChart = new Chart(cpuCtx, {
             type: 'doughnut',
@@ -52,7 +51,6 @@
             },
         });
 
-        // Initialize Memory Usage chart
         const memoryCtx = document.getElementById('memory-chart').getContext('2d');
         const memoryChart = new Chart(memoryCtx, {
             type: 'bar',
@@ -73,7 +71,6 @@
             },
         });
 
-        // Initialize Disk Usage chart
         const diskCtx = document.getElementById('disk-chart').getContext('2d');
         const diskChart = new Chart(diskCtx, {
             type: 'pie',
@@ -90,19 +87,16 @@
             },
         });
 
-        // Handle system_info events from the server
         socket.on('system_info', function (data) {
             // Update CPU Usage chart
             cpuChart.data.datasets[0].data[0] = data.cpu_percent;
             cpuChart.data.datasets[0].data[1] = 100 - data.cpu_percent;
             cpuChart.update();
 
-            // Update Memory Usage chart
             memoryChart.data.datasets[0].data[0] = data.memory_used;
             memoryChart.data.datasets[0].data[1] = data.memory_total - data.memory_used;
             memoryChart.update();
 
-            // Update Disk Usage chart
             diskChart.data.datasets[0].data[0] = data.disk_used;
             diskChart.data.datasets[0].data[1] = data.disk_total - data.disk_used;
             diskChart.update();

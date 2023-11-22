@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Пользователи с разрешенным доступом</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/search.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/checkbox.css') }}">
 </head>
 <body>
     <h1>Пользователи с разрешенным доступом</h1>
@@ -30,7 +31,6 @@
                 <th>Действия</th>
             </tr>
         </thead>
-        <!-- Table body will be populated dynamically using JavaScript -->
     </table>
 
     <!-- Main Users Table -->
@@ -43,19 +43,29 @@
             <th>Имя пользователя</th>
             <th>Отдел</th>
             <th>Номер кабинета</th>
-            <th>Доступ</th>
+            <th>Статус</th>
+            <th>Действия</th>
         </tr>
     </thead>
-    {% for user in users %}
-    <tr>
-        <td>{{ user[0] }}</td>
-        <td>{{ user[1] }}</td>
-        <td contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'username')">{{ user[2] }}</td>
-        <td contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'department')">{{ user[3] }}</td>
-        <td contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'number_cabinet')">{{ user[4] }}</td>
-        <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'username')">{{ user[2] }}</td>
-    </tr>
-    {% endfor %}
+    <tbody>
+        {% for user in users %}
+            <tr>
+                <td>{{ user[0] }}</td>
+                <td>{{ user[1] }}</td>
+                <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'username')">{{ user[2] }}</td>
+                <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'department')">{{ user[3] }}</td>
+                <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'number_cabinet')">{{ user[4] }}</td>
+                <td id="status_{{ user[1] }}" style="background-color: {{ 'green' if user[5] else 'red' }}">
+                    {{ "Разрешен" if user[5] is defined and user[5] else "Запрещен" }}
+                </td>
+            <td>
+                <button onclick="toggleAccess('{{ user[1] }}', {{ user[5] }})">
+                    {{ "Запретить" if user[5] else "Разрешить" }} доступ
+                </button>
+            </td>
+            </tr>
+        {% endfor %}
+    </tbody>
 </table>
 
     <script src="{{ url_for('static', filename='js/name.js') }}"></script>
