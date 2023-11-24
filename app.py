@@ -9,6 +9,7 @@ import psutil
 import socket
 from datetime import timedelta
 import sqlite3
+import subprocess
 
 app = Flask(__name__)
 
@@ -86,29 +87,6 @@ def index():
     return render_template('index.html')
 
 
-@app.route('/remove_user', methods=['POST'])
-@login_required
-def allow_access():
-    username = request.form.get('username')
-    ip_address = request.form.get('ip_address')
-    mac_address = get_mac_address(ip_address)
-    department = request.form.get('department')
-    number_cabinet = request.form.get('number_cabinet')
-
-    conn = sqlite3.connect('access_control.db')
-    cursor = conn.cursor()
-    cursor.execute(
-        'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
-        (username, ip_address, mac_address, department, number_cabinet))
-    conn.commit()
-
-    # with open('allowed_ips.txt', 'a') as f:
-    #     f.write(ip_address + '\n')
-    # run(['systemctl', 'restart', 'squid'])
-
-    return redirect(url_for('index'))
-
-
 @app.route('/block_site', methods=['POST'])
 @login_required
 def block_site():
@@ -120,10 +98,40 @@ def block_site():
     conn.commit()
     conn.close()
 
-    # with open ('/etc/squid/squid.conf', 'a') as f:
-    # f.write('acl blocked_sites dstdomain {0}\nhttp_access deny blocked_sites\n'.format(site_url))
+    # blocked_sites = fetch_blocked_sites_from_db()
+    #
+    # update_squid_config([], blocked_sites)
+    # restart_squid()
 
     return redirect(url_for('index'))
+
+
+@app.route('/blocked_sites')
+@login_required
+def blocked_sites():
+    conn = sqlite3.connect('access_control.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM blocked_sites')
+    blocked_sites = cursor.fetchall()
+    conn.close()
+
+    return render_template('blocked_sites.html', blocked_sites=blocked_sites)
+
+
+# Извлекает список сайтов из базы данных
+def fetch_blocked_sites_from_db():
+    try:
+        conn = sqlite3.connect('access_control.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT site_url FROM blocked_sites')
+        blocked_sites = [row[0] for row in cursor.fetchall()]
+
+        conn.close()
+        return blocked_sites
+    except Exception as e:
+        print(f"Error fetching blocked sites from the database: {e}")
+        return []
 
 
 @app.route('/users')
@@ -138,16 +146,12 @@ def users():
     return render_template('users.html', users=users)
 
 
-@app.route('/blocked_sites')
-@login_required
-def blocked_sites():
-    conn = sqlite3.connect('access_control.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM blocked_sites')
-    blocked_sites = cursor.fetchall()
-    conn.close()
-
-    return render_template('blocked_sites.html', blocked_sites=blocked_sites)
+def restart_squid():
+    try:
+        subprocess.run(['systemctl', 'restart', 'squid'], check=True)
+        print("Squid restarted successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error restarting Squid: {e}")
 
 
 @app.route('/monitoring')
@@ -264,7 +268,6 @@ def confirm_access():
         return jsonify({'status': 'error', 'message': 'Failed to confirm access'})
 
 
-
 @app.route('/get_new_users')
 def get_new_users():
     try:
@@ -317,6 +320,18 @@ def toggle_access():
     return jsonify({'newStatus': current_status})
 
 
+# def update_squid_config(allowed_sites, blocked_sites):
+#     with open('/etc/squid/squid.conf', 'w') as f:
+#         for site in allowed_sites:
+#             f.write(f'acl allowed_sites dstdomain {site}\n')
+#
+#         for site in blocked_sites:
+#             f.write(f'acl blocked_sites dstdomain {site}\n')
+#
+#         f.write('http_access allow allowed_sites\n')
+#         f.write('http_access deny blocked_sites\n')
+
+
 ################### Удалить ###################
 
 
@@ -328,6 +343,34 @@ def remove_site(site_id):
     cursor.execute('DELETE FROM blocked_sites WHERE id = ?', site_id)
     conn.commit()
     conn.close()
+
+    # blocked_sites = fetch_blocked_sites_from_db()
+    #
+    # update_squid_config([], blocked_sites)
+    # restart_squid()
+
+    return redirect(url_for('index'))
+
+
+@app.route('/remove_user', methods=['POST'])
+@login_required
+def allow_access():
+    username = request.form.get('username')
+    ip_address = request.form.get('ip_address')
+    mac_address = get_mac_address(ip_address)
+    department = request.form.get('department')
+    number_cabinet = request.form.get('number_cabinet')
+
+    conn = sqlite3.connect('access_control.db')
+    cursor = conn.cursor()
+    cursor.execute(
+        'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
+        (username, ip_address, mac_address, department, number_cabinet))
+    conn.commit()
+
+    # with open('allowed_ips.txt', 'a') as f:
+    #     f.write(ip_address + '\n')
+    # run(['systemctl', 'restart', 'squid'])
 
     return redirect(url_for('index'))
 
