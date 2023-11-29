@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SIEM Web Interface</title>
+    <style>
+        table {
+            border-collapse: collapse;
+            width: 80%;
+            margin: 20px;
+        }
+
+        table, th, td {
+            border: 1px solid black;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>SIEM Web Interface</h1>
+
+    <h2>Security Events:</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Source IP</th>
+                <th>Event Type</th>
+                <th>Details</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in security_events %}
+                <tr>
+                    <td>{{ event.timestamp }}</td>
+                    <td>{{ event.source_ip }}</td>
+                    <td>{{ event.event_type }}</td>
+                    <td>{{ event.details }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <a href="/scan_network">Scan Local Network</a>
+
+</body>
+</html>

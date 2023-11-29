@@ -1,6 +1,5 @@
-from scapy.layers.l2 import ARP, Ether, srp
 import aiosqlite
-import asyncio
+from scapy.layers.l2 import ARP, Ether, srp
 
 
 async def scan_local_network(ip):

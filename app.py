@@ -4,12 +4,16 @@ from flask_login import LoginManager, UserMixin, login_user, login_required, cur
 from flask_socketio import SocketIO
 from forms import LoginForm
 from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
+from SIEM import SIEM
 from database import User
 import psutil
 import socket
 from datetime import timedelta
 import sqlite3
 import subprocess
+import json
+import requests
+from datetime import datetime
 
 app = Flask(__name__)
 
@@ -27,6 +31,8 @@ devices = scan_local_network(local_network_ip)
 
 login_manager = LoginManager(app)
 asyncio.run(main())
+
+siem_system = SIEM()
 
 
 @login_manager.user_loader
@@ -84,7 +90,12 @@ def login():
 @app.route('/index')
 @login_required
 def index():
-    return render_template('index.html')
+    conn = sqlite3.connect('access_control.db')
+    cursor = conn.cursor()
+    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet, access_allowed FROM users')
+    users = cursor.fetchall()
+    conn.close()
+    return render_template('index.html', users=users)
 
 
 @app.route('/block_site', methods=['POST'])
@@ -99,11 +110,11 @@ def block_site():
     conn.close()
 
     # blocked_sites = fetch_blocked_sites_from_db()
-    #
-    # update_squid_config([], blocked_sites)
-    # restart_squid()
 
-    return redirect(url_for('index'))
+    # update_squid_config([], blocked_sites)  # Раскомментируй эту строку
+    # restart_squid()  # Если необходимо перезапустить Squid, раскомментируй эту строку
+
+    return redirect(url_for('blocked_sites'))
 
 
 @app.route('/blocked_sites')
@@ -321,15 +332,55 @@ def toggle_access():
 
 
 # def update_squid_config(allowed_sites, blocked_sites):
+#     config_lines = []
+#
+#     for site in allowed_sites:
+#         config_lines.append(f'acl allowed_sites dstdomain {site}\n')
+#
+#     for site in blocked_sites:
+#         config_lines.append(f'acl blocked_sites dstdomain {site}\n')
+#
+#     config_lines.append('http_access allow allowed_sites\n')
+#     config_lines.append('http_access deny blocked_sites\n')
+#
 #     with open('/etc/squid/squid.conf', 'w') as f:
-#         for site in allowed_sites:
-#             f.write(f'acl allowed_sites dstdomain {site}\n')
+#         f.writelines(config_lines)
 #
-#         for site in blocked_sites:
-#             f.write(f'acl blocked_sites dstdomain {site}\n')
-#
-#         f.write('http_access allow allowed_sites\n')
-#         f.write('http_access deny blocked_sites\n')
+#     restart_squid()
+
+
+@app.route('/siem_system')
+def index_siem():
+    return render_template('siem_system.html')
+
+
+@app.route('/send_event', methods=['POST'])
+def send_event():
+    try:
+        siem_url = "https://your-siem-url/api/events"
+        current_time = datetime.now().isoformat()
+
+        event_data = {
+            "event_type": request.form['eventType'],
+            "timestamp": current_time,
+            "source_ip": request.form['sourceIp'],
+            "username": request.form['username'],
+            "description": request.form['description']
+        }
+
+        headers = {"Content-Type": "application/json"}
+        response = requests.post(siem_url, data=json.dumps(event_data), headers=headers)
+
+        if response.status_code == 200:
+            print("Event sent to SIEM successfully.")
+            return jsonify({"status": "success"})
+        else:
+            print(f"Failed to send event to SIEM. Status code: {response.status_code}")
+            return jsonify({"status": "error"})
+
+    except Exception as e:
+        print(f"Error during SIEM event sending: {e}")
+        return jsonify({"status": "error"})
 
 
 ################### Удалить ###################
@@ -340,7 +391,7 @@ def toggle_access():
 def remove_site(site_id):
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
-    cursor.execute('DELETE FROM blocked_sites WHERE id = ?', site_id)
+    cursor.execute('DELETE FROM blocked_sites WHERE id = ?', (site_id,))
     conn.commit()
     conn.close()
 
@@ -349,7 +400,7 @@ def remove_site(site_id):
     # update_squid_config([], blocked_sites)
     # restart_squid()
 
-    return redirect(url_for('index'))
+    return redirect(url_for('blocked_sites'))
 
 
 @app.route('/remove_user', methods=['POST'])
