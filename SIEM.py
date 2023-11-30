@@ -1,76 +1,52 @@
-import time
+import psutil
+from datetime import datetime
 
-
-class SecurityEvent:
-    def __init__(self, timestamp, source_ip, event_type, details):
-        self.timestamp = timestamp
-        self.source_ip = source_ip
-        self.event_type = event_type
-        self.details = details
+previous_network_traffic = {}
 
 
 class SIEM:
     def __init__(self):
-        self.security_events = []
+        self.events = []
 
-    def log_event(self, source_ip, event_type, details):
-        timestamp = time.time()
-        event = SecurityEvent(timestamp, source_ip, event_type, details)
-        self.security_events.append(event)
-        self.process_event(event)
+    def log_event(self, event_type, source_ip, username, description):
+        current_time = datetime.now().isoformat()
+        event_data = {
+            "event_type": event_type,
+            "timestamp": current_time,
+            "source_ip": source_ip,
+            "username": username,
+            "description": description
+        }
+        self.events.append(event_data)
 
-    def process_event(self, event):
-        print(f"Received Event: {event.event_type} from {event.source_ip}. Details: {event.details}")
+    def get_events(self):
+        return self.events
 
-        # Пример простого анализа события
-        if event.event_type == "Unauthorized Access":
-            self.correlate_unauthorized_access(event)
-        elif event.event_type == "Malware Detected":
-            self.correlate_malware_detected(event)
 
-    def correlate_unauthorized_access(self, event):
-        # Пример корреляции для несанкционированного доступа
-        correlated_events = [e for e in self.security_events if
-                             e.event_type == "Failed Login" and e.source_ip == event.source_ip]
+def check_anomalous_traffic():
+    network_info = psutil.net_io_counters(pernic=True)
 
-        if len(correlated_events) >= 3:
-            self.react_to_unauthorized_access(event)
+    for interface, traffic in network_info.items():
+        if interface not in previous_network_traffic:
+            previous_network_traffic[interface] = traffic
+            continue
 
-    def correlate_malware_detected(self, event):
-        correlated_events = []
+        current_sent_bytes, current_received_bytes = traffic.bytes_sent, traffic.bytes_recv
+        previous_sent_bytes, previous_received_bytes = previous_network_traffic[interface]
 
-        # Проверяем наличие других событий Suspicious File Access для того же IP
-        suspicious_file_events = [e for e in self.security_events if
-                                  e.event_type == "Suspicious File Access" and e.source_ip == event.source_ip]
-        correlated_events.extend(suspicious_file_events)
+        # Проверка на аномалию, например, если трафик увеличился более чем на 50%
+        if (current_sent_bytes - previous_sent_bytes) > 0.5 * previous_sent_bytes or \
+                (current_received_bytes - previous_received_bytes) > 0.5 * previous_received_bytes:
+            # Здесь вы можете добавить логику обработки аномалии, например, отправку события в SIEM
+            event_type = "Anomalous Network Traffic"
+            timestamp = datetime.now().isoformat()
+            source_ip = "N/A"  # Ваша логика для определения источника IP
+            username = "N/A"  # Ваша логика для определения пользователя
+            description = f"Anomalous traffic on interface {interface}"
 
-        # Проверяем наличие попыток обхода системы (например, множественные неудачные попытки входа)
-        failed_login_events = [e for e in self.security_events if
-                               e.event_type == "Failed Login" and e.source_ip == event.source_ip]
-        if len(failed_login_events) >= 3:
-            correlated_events.extend(failed_login_events)
+            # Замените следующей строкой кода для отправки события в SIEM
+            print(
+                f"Event: {event_type}, Timestamp: {timestamp}, Source IP: {source_ip}, Username: {username}, Description: {description}")
 
-        # Проверяем необычную активность (например, подозрительные запросы)
-        unusual_activity_events = [e for e in self.security_events if
-                                   e.event_type == "Unusual Activity" and e.source_ip == event.source_ip]
-        correlated_events.extend(unusual_activity_events)
-
-        # Проверяем подозрительные соединения (например, общение с известными зловредными IP-адресами)
-        malicious_ip_addresses = ["malicious_ip_1", "malicious_ip_2"]
-        malicious_connection_events = [e for e in self.security_events if
-                                       e.source_ip == event.source_ip and e.details in malicious_ip_addresses]
-        correlated_events.extend(malicious_connection_events)
-
-        if len(correlated_events) >= 3:
-            self.react_to_malware_detected(event)
-
-    def react_to_unauthorized_access(self, event):
-        # Пример реагирования на несанкционированный доступ
-        print(f"Unauthorized Access Detected! Blocking IP: {event.source_ip}")
-
-    def react_to_malware_detected(self, event):
-        # Пример реагирования на обнаружение вредоносного ПО
-        print(f"Malware Detected! Initiating Antivirus Scan for {event.source_ip}")
-
-    def get_security_events(self):
-        return self.security_events
+        # Обновление предыдущего трафика
+        previous_network_traffic[interface] = (current_sent_bytes, current_received_bytes)

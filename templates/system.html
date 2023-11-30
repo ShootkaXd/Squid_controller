@@ -1,18 +1,45 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>System Information</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/system.css') }}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+
+        h1, h2 {
+            color: #333;
+        }
+
+        p {
+            margin-bottom: 10px;
+        }
+
+        .resource-section {
+            margin-top: 20px;
+        }
+    </style>
 </head>
 <body>
-
-<div class="container">
     <h1>System Information</h1>
+    <p>IP Address: {{ ip_address }}</p>
+    <p>Hostname: {{ hostname }}</p>
+    <p>Uptime: {{ uptime }}</p>
 
-    <p><strong>Hostname:</strong> {{ hostname }}</p>
-    <p><strong>IP Address:</strong> {{ ip_address }}</p>
-    <p><strong>Uptime:</strong> {{ uptime|format_uptime }}</p>
-</div>
+    <div class="resource-section">
+        <h2>Resource Usage</h2>
+        <p>CPU Usage: {{ cpu_percent }}%</p>
+        <p>Memory Usage: {{ memory_info.percent }}%</p>
+        <p>Disk Usage: {{ disk_info.percent }}%</p>
+    </div>
 
+    <div class="resource-section">
+        <h2>Network Usage</h2>
+        <p>Sent Bytes: {{ sent_bytes }}</p>
+        <p>Received Bytes: {{ received_bytes }}</p>
+    </div>
 </body>
 </html>

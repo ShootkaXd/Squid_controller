@@ -1,9 +1,4 @@
-import sqlite3
-
 from flask_login import UserMixin
-
-from flask_login import UserMixin
-import aiosqlite
 import sqlite3
 
 

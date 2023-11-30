@@ -1,10 +1,11 @@
 import asyncio
+import time
 from flask import Flask, render_template, redirect, url_for, request, jsonify
-from flask_login import LoginManager, UserMixin, login_user, login_required, current_user
+from flask_login import LoginManager, login_user, login_required
 from flask_socketio import SocketIO
 from forms import LoginForm
 from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
-from SIEM import SIEM
+from SIEM import SIEM, check_anomalous_traffic
 from database import User
 import psutil
 import socket
@@ -15,11 +16,11 @@ import json
 import requests
 from datetime import datetime
 
+# from traffic import captured_packets, packet_callback
+
 app = Flask(__name__)
-
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
-
 socketio = SocketIO(app)
+app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
 
 
 async def main():
@@ -85,6 +86,43 @@ def login():
             login_user(user)
             return redirect(url_for('index'))
     return render_template('login.html', form=form)
+
+
+####################### Системный монитор ##########################
+def get_system_info():
+    cpu_percent = psutil.cpu_percent()
+    memory_info = psutil.virtual_memory()
+    disk_info = psutil.disk_usage('/')
+    network_info = psutil.net_io_counters(pernic=True)
+    network_traffic = network_info[list(network_info.keys())[0]]
+    sent_bytes = network_traffic.bytes_sent
+    received_bytes = network_traffic.bytes_recv
+
+    return {
+        'cpu_percent': cpu_percent,
+        'memory_percent': memory_info.percent,
+        'disk_percent': disk_info.percent,
+        'sent_bytes': sent_bytes,
+        'received_bytes': received_bytes
+    }
+
+
+def generate_system_info():
+    while True:
+        system_info = get_system_info()
+        socketio.emit('update_system_info', system_info, namespace='/monitoring.css')
+        time.sleep(1)
+
+
+@app.route('/monitoring.css')
+def monitoring():
+    return render_template('monitoring.css.html')
+
+
+@socketio.on('connect', namespace='/monitoring.html')
+def connect():
+    system_info = get_system_info()
+    socketio.emit('update_system_info', system_info)
 
 
 @app.route('/index')
@@ -165,23 +203,6 @@ def restart_squid():
         print(f"Error restarting Squid: {e}")
 
 
-@app.route('/monitoring')
-@login_required
-def monitoring():
-    cpu_percent = psutil.cpu_percent()
-    memory_info = psutil.virtual_memory()
-    disk_info = psutil.disk_usage('/')
-
-    network_info = psutil.net_io_counters(pernic=True)
-
-    network_traffic = network_info[list(network_info.keys())[0]]
-    sent_bytes = network_traffic.bytes_sent
-    received_bytes = network_traffic.bytes_recv
-
-    return render_template('system_info.html', cpu_percent=cpu_percent, memory_info=memory_info,
-                           disk_info=disk_info, sent_bytes=sent_bytes, received_bytes=received_bytes)
-
-
 @app.template_filter('format_uptime')
 def format_uptime(uptime):
     uptime_delta = timedelta(seconds=uptime)
@@ -190,10 +211,12 @@ def format_uptime(uptime):
     return formatted_uptime
 
 
-def get_system_info():
+def system_info():
     ip_address = socket.gethostbyname(socket.gethostname())
     hostname = socket.gethostname()
-    uptime = psutil.boot_time()
+
+    uptime_seconds = psutil.boot_time()
+    uptime = str(timedelta(seconds=uptime_seconds))
 
     return ip_address, hostname, uptime
 
@@ -206,12 +229,17 @@ app.jinja_env.filters['format_uptime'] = format_uptime
 def system():
     ip_address, hostname, uptime = get_system_info()
 
-    sent_bytes = 1000000
-    received_bytes = 2000000
+    cpu_percent = psutil.cpu_percent()
+    memory_info = psutil.virtual_memory()
+    disk_info = psutil.disk_usage('/')
+
+    network_stats = psutil.net_io_counters()
+    sent_bytes = network_stats.bytes_sent
+    received_bytes = network_stats.bytes_recv
 
     return render_template('system.html', ip_address=ip_address, hostname=hostname, uptime=uptime,
-                           cpu_percent=psutil.cpu_percent(), memory_info=psutil.virtual_memory(),
-                           disk_info=psutil.disk_usage('/'), sent_bytes=sent_bytes, received_bytes=received_bytes)
+                           cpu_percent=cpu_percent, memory_info=memory_info,
+                           disk_info=disk_info, sent_bytes=sent_bytes, received_bytes=received_bytes)
 
 
 @app.route('/update_user', methods=['POST'])
@@ -348,39 +376,37 @@ def toggle_access():
 #
 #     restart_squid()
 
-
-@app.route('/siem_system')
-def index_siem():
-    return render_template('siem_system.html')
-
-
 @app.route('/send_event', methods=['POST'])
 def send_event():
     try:
-        siem_url = "https://your-siem-url/api/events"
-        current_time = datetime.now().isoformat()
+        event_type = request.form['eventType']
+        source_ip = request.form['sourceIp']
+        username = request.form['username']
+        description = request.form['description']
 
-        event_data = {
-            "event_type": request.form['eventType'],
-            "timestamp": current_time,
-            "source_ip": request.form['sourceIp'],
-            "username": request.form['username'],
-            "description": request.form['description']
-        }
+        siem_system.log_event(event_type, source_ip, username, description)
 
-        headers = {"Content-Type": "application/json"}
-        response = requests.post(siem_url, data=json.dumps(event_data), headers=headers)
-
-        if response.status_code == 200:
-            print("Event sent to SIEM successfully.")
-            return jsonify({"status": "success"})
-        else:
-            print(f"Failed to send event to SIEM. Status code: {response.status_code}")
-            return jsonify({"status": "error"})
-
+        return jsonify({"status": "success"})
     except Exception as e:
         print(f"Error during SIEM event sending: {e}")
         return jsonify({"status": "error"})
+
+
+@app.route('/siem_events')
+@login_required
+def siem_events():
+    events = siem_system.get_events()
+    return render_template('siem_events.html', events=events)
+
+
+previous_network_traffic = {}
+
+
+# Роут для отображения аномального трафика
+@app.route('/anomalous_traffic')
+def anomalous_traffic():
+    check_anomalous_traffic()
+    return render_template('anomalous_traffic.html')
 
 
 ################### Удалить ###################
@@ -427,4 +453,5 @@ def allow_access():
 
 
 if __name__ == '__main__':
+    socketio.start_background_task(generate_system_info)
     app.run(host='192.168.118.13', port=5000)

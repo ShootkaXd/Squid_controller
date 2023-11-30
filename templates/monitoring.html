@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>System Monitoring</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/monitoring.css') }}">
+</head>
+
+<body>
+    <h1>System Monitoring</h1>
+
+    <div id="system-info">
+        <div class="info-section">
+            <span class="info-label">CPU Usage:</span>
+            <span id="cpu-percent"></span>%
+        </div>
+
+        <div class="info-section">
+            <span class="info-label">Memory Usage:</span>
+            <span id="memory-percent"></span>%
+        </div>
+
+        <div class="info-section">
+            <span class="info-label">Disk Usage:</span>
+            <span id="disk-percent"></span>%
+        </div>
+
+        <div class="info-section">
+            <span class="info-label">Sent Bytes:</span>
+            <span id="sent-bytes"></span>
+        </div>
+
+        <div class="info-section">
+            <span class="info-label">Received Bytes:</span>
+            <span id="received-bytes"></span>
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Header 1</th>
+                <th>Header 2</th>
+                <th>Header 3</th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- Тут будут ваши строки с данными -->
+        </tbody>
+    </table>
+
+    <script>
+        var socket = io.connect('http://' + document.domain + ':' + location.port + '/monitoring');
+
+        socket.on('update_system_info', function(data) {
+            document.getElementById('cpu-percent').innerText = data.cpu_percent;
+            document.getElementById('memory-percent').innerText = data.memory_percent + '%';
+            document.getElementById('disk-percent').innerText = data.disk_percent + '%';
+            document.getElementById('sent-bytes').innerText = data.sent_bytes;
+            document.getElementById('received-bytes').innerText = data.received_bytes;
+        });
+    </script>
+</body>
+
+</html>
