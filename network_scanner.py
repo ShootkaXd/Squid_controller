@@ -1,3 +1,5 @@
+import ipaddress
+
 import aiosqlite
 from scapy.layers.l2 import ARP, Ether, srp
 
@@ -8,7 +10,7 @@ async def scan_local_network(ip):
         ether_frame = Ether(dst="ff:ff:ff:ff:ff:ff")
 
         packet = ether_frame / arp_request
-        result = srp(packet, timeout=3, verbose=0)[0]
+        result = srp(packet, timeout=10, verbose=0)[0]
 
         devices = []
         for sent, received in result:
@@ -23,6 +25,8 @@ async def update_database_with_devices():
     try:
         local_network_ip = "192.168.118.0/24"
         devices = await scan_local_network(local_network_ip)
+
+        devices.sort(key=lambda x: ipaddress.IPv4Address(x['ip']))
 
         async with aiosqlite.connect('access_control.db') as conn:
             async with conn.cursor() as cursor:
