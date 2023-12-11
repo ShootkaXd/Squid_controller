@@ -40,8 +40,8 @@ def check_anomalous_traffic():
             # Здесь вы можете добавить логику обработки аномалии, например, отправку события в SIEM
             event_type = "Anomalous Network Traffic"
             timestamp = datetime.now().isoformat()
-            source_ip = "N/A"  # Ваша логика для определения источника IP
-            username = "N/A"  # Ваша логика для определения пользователя
+            source_ip = "N/A"  # логика для определения источника IP
+            username = "N/A"  # логика для определения пользователя
             description = f"Anomalous traffic on interface {interface}"
 
             # Замените следующей строкой кода для отправки события в SIEM

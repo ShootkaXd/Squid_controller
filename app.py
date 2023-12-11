@@ -12,9 +12,9 @@ import socket
 from datetime import timedelta
 import sqlite3
 import subprocess
-import json
-import requests
-from datetime import datetime
+from flask import flash
+from flask_limiter.util import get_remote_address
+from flask_limiter import Limiter
 
 # from traffic import captured_packets, packet_callback
 
@@ -27,7 +27,7 @@ async def main():
     await update_database_with_devices()
 
 
-local_network_ip = "192.168.118.0/24"
+local_network_ip = "192.168.123.0/24"
 devices = scan_local_network(local_network_ip)
 
 login_manager = LoginManager(app)
@@ -42,6 +42,34 @@ def load_user(user_id):
 
 
 users_db = {'test': {'password': 'test'}}
+
+limiter = Limiter(
+    app,
+    key_func=get_remote_address,
+    storage_uri="memory://",
+)
+
+
+@app.route('/', methods=['GET', 'POST'])
+@limiter.limit("5 per minute")  # Ограничение: 5 попыток входа в минуту с одного IP
+# @limiter.request_filter
+def login():
+    form = LoginForm()
+    #
+    # # Определяем, было ли слишком много запросов с этого IP
+    # if getattr(request, 'limiter_request_blocked', False):
+    #     flash('Слишком много попыток входа. Пожалуйста, повторите попытку позже.')
+    #     return redirect(url_for('login'))
+
+    if form.validate_on_submit():
+        user_id = form.user_id.data
+        password = form.password.data
+        if user_id in users_db and users_db[user_id]['password'] == password:
+            user = User(user_id)
+            login_user(user)
+            return redirect(url_for('index'))
+
+    return render_template('login.html', form=form)
 
 
 @socketio.on('connect')
@@ -73,19 +101,6 @@ def emit_system_info():
 @app.route('/monitoring_realtime')
 def monitor():
     return render_template('monitoring_realtime.html')
-
-
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    form = LoginForm()
-    if form.validate_on_submit():
-        user_id = form.user_id.data
-        password = form.password.data
-        if user_id in users_db and users_db[user_id]['password'] == password:
-            user = User(user_id)
-            login_user(user)
-            return redirect(url_for('index'))
-    return render_template('login.html', form=form)
 
 
 ####################### Системный монитор ##########################
@@ -188,7 +203,7 @@ def fetch_blocked_sites_from_db():
 def users():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet, access_allowed FROM users')
+    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet, access_allowed, status FROM users')
     users = cursor.fetchall()
     conn.close()
 
@@ -454,4 +469,4 @@ def allow_access():
 
 if __name__ == '__main__':
     socketio.start_background_task(generate_system_info)
-    app.run(host='192.168.118.13', port=5000)
+    app.run(host='192.168.123.10', port=5000)
