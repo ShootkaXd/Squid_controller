@@ -1,10 +1,22 @@
 from flask_login import UserMixin
 import sqlite3
+from flask_sqlalchemy import SQLAlchemy
 
 
-class User(UserMixin):
+db = SQLAlchemy()
+
+
+class User(db.Model, UserMixin):
     def __init__(self, user_id):
         self.id = user_id
+
+    id = db.Column(db.Integer, primary_key=True)
+    ip_address = db.Column(db.String(15))
+    mac_address = db.Column(db.String(17), unique=True)
+    username = db.Column(db.String(255))
+    department = db.Column(db.String(255))
+    number_cabinet = db.Column(db.String(255))
+    access_allowed = db.Column(db.Boolean, default=False)
 
 
 conn = sqlite3.connect('access_control.db')

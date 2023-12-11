@@ -3,32 +3,38 @@ import time
 from flask import Flask, render_template, redirect, url_for, request, jsonify
 from flask_login import LoginManager, login_user, login_required
 from flask_socketio import SocketIO
+from database import User, db
 from forms import LoginForm
 from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
 from SIEM import SIEM, check_anomalous_traffic
-from database import User
 import psutil
 import socket
 from datetime import timedelta
 import sqlite3
 import subprocess
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask import flash
 from flask_limiter.util import get_remote_address
 from flask_limiter import Limiter
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
+from flask_sqlalchemy import SQLAlchemy
 
 # from traffic import captured_packets, packet_callback
+
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///access_control.db'
+admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
+admin.add_view(ModelView(User, db.session))
 
 
 async def main():
     await update_database_with_devices()
 
 
-local_network_ip = "192.168.123.0/24"
+local_network_ip = socket.gethostbyname(socket.gethostname())
 devices = scan_local_network(local_network_ip)
 
 login_manager = LoginManager(app)
@@ -465,7 +471,7 @@ def allow_access():
 
 if __name__ == '__main__':
     socketio.start_background_task(generate_system_info)
-    app.run(host='192.168.123.10', port=5000)
+    app.run(host='0.0.0.0', port=5000)
 
 # import subprocess
 #

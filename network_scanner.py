@@ -1,5 +1,4 @@
 import ipaddress
-
 import aiosqlite
 from scapy.layers.l2 import ARP, Ether, srp
 
