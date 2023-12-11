@@ -12,6 +12,7 @@ import socket
 from datetime import timedelta
 import sqlite3
 import subprocess
+from werkzeug.security import generate_password_hash, check_password_hash
 from flask import flash
 from flask_limiter.util import get_remote_address
 from flask_limiter import Limiter
@@ -41,7 +42,7 @@ def load_user(user_id):
     return User(user_id)
 
 
-users_db = {'test': {'password': 'test'}}
+users_db = {'test': {'password_hash': generate_password_hash('test', method='pbkdf2:sha256', salt_length=8)}}
 
 limiter = Limiter(
     app,
@@ -51,20 +52,15 @@ limiter = Limiter(
 
 
 @app.route('/', methods=['GET', 'POST'])
-@limiter.limit("5 per minute")  # Ограничение: 5 попыток входа в минуту с одного IP
-# @limiter.request_filter
+@limiter.limit("5 per minute")
 def login():
     form = LoginForm()
-    #
-    # # Определяем, было ли слишком много запросов с этого IP
-    # if getattr(request, 'limiter_request_blocked', False):
-    #     flash('Слишком много попыток входа. Пожалуйста, повторите попытку позже.')
-    #     return redirect(url_for('login'))
 
     if form.validate_on_submit():
         user_id = form.user_id.data
         password = form.password.data
-        if user_id in users_db and users_db[user_id]['password'] == password:
+
+        if user_id in users_db and check_password_hash(users_db[user_id]['password_hash'], password):
             user = User(user_id)
             login_user(user)
             return redirect(url_for('index'))
@@ -203,7 +199,7 @@ def fetch_blocked_sites_from_db():
 def users():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet, access_allowed, status FROM users')
+    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet, access_allowed FROM users')
     users = cursor.fetchall()
     conn.close()
 
@@ -470,3 +466,24 @@ def allow_access():
 if __name__ == '__main__':
     socketio.start_background_task(generate_system_info)
     app.run(host='192.168.123.10', port=5000)
+
+# import subprocess
+#
+# def get_connected_users_squidclient():
+#     command = "squidclient -h localhost -p 3128 mgr:info | grep 'Number of clients accessing cache'"
+#     result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+#     output = result.stdout
+#
+#     # Пример вывода команды: Number of clients accessing cache: 10
+#     parts = output.split()
+#     if len(parts) == 6 and parts[0] == "Number" and parts[1] == "of" and parts[2] == "clients" and parts[3] == "accessing" and parts[4] == "cache:":
+#         return int(parts[5])
+#     else:
+#         return None
+#
+# connected_users_count = get_connected_users_squidclient()
+#
+# if connected_users_count is not None:
+#     print(f"Number of connected users: {connected_users_count}")
+# else:
+#     print("Failed to retrieve connected users count.")
