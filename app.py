@@ -17,10 +17,6 @@ from flask_limiter.util import get_remote_address
 from flask_limiter import Limiter
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
-from flask_sqlalchemy import SQLAlchemy
-
-# from traffic import captured_packets, packet_callback
-
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -80,6 +76,13 @@ def handle_connect():
     emit_system_info()
 
 
+@app.route('/monitoring_realtime')
+def monitor():
+    return render_template('monitoring_realtime.html')
+
+
+####################### Системный монитор ##########################
+
 def emit_system_info():
     cpu_percent = psutil.cpu_percent()
     memory_info = psutil.virtual_memory()
@@ -100,12 +103,6 @@ def emit_system_info():
     socketio.emit('system_info', system_info)
 
 
-@app.route('/monitoring_realtime')
-def monitor():
-    return render_template('monitoring_realtime.html')
-
-
-####################### Системный монитор ##########################
 def get_system_info():
     cpu_percent = psutil.cpu_percent()
     memory_info = psutil.virtual_memory()
@@ -184,7 +181,6 @@ def blocked_sites():
     return render_template('blocked_sites.html', blocked_sites=blocked_sites)
 
 
-# Извлекает список сайтов из базы данных
 def fetch_blocked_sites_from_db():
     try:
         conn = sqlite3.connect('access_control.db')
@@ -349,23 +345,19 @@ def get_new_users():
 def toggle_access():
     mac_address = request.form.get('macAddress')
 
-    # Ваш код для получения текущего статуса из базы данных
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
     cursor.execute('SELECT access_allowed FROM users WHERE mac_address = ?', (mac_address,))
     current_status = cursor.fetchone()
 
     if current_status is not None:
-        # Распаковываем кортеж и инвертируем текущий статус
         current_status = not bool(current_status[0])
 
-        # Обновляем статус в базе данных
         cursor.execute('UPDATE users SET access_allowed = ? WHERE mac_address = ?', (current_status, mac_address))
         conn.commit()
         print(f"Rows affected: {cursor.rowcount}")
     else:
-        # Если запись не найдена, можно создать новую запись с заданным статусом
-        current_status = True  # Или любой другой статус по умолчанию
+        current_status = True
         cursor.execute('INSERT INTO users (mac_address, access_allowed) VALUES (?, ?)', (mac_address, current_status))
         conn.commit()
         print(f"New user added with mac_address: {mac_address}")
@@ -472,24 +464,3 @@ def allow_access():
 if __name__ == '__main__':
     socketio.start_background_task(generate_system_info)
     app.run(host='0.0.0.0', port=5000)
-
-# import subprocess
-#
-# def get_connected_users_squidclient():
-#     command = "squidclient -h localhost -p 3128 mgr:info | grep 'Number of clients accessing cache'"
-#     result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-#     output = result.stdout
-#
-#     # Пример вывода команды: Number of clients accessing cache: 10
-#     parts = output.split()
-#     if len(parts) == 6 and parts[0] == "Number" and parts[1] == "of" and parts[2] == "clients" and parts[3] == "accessing" and parts[4] == "cache:":
-#         return int(parts[5])
-#     else:
-#         return None
-#
-# connected_users_count = get_connected_users_squidclient()
-#
-# if connected_users_count is not None:
-#     print(f"Number of connected users: {connected_users_count}")
-# else:
-#     print("Failed to retrieve connected users count.")

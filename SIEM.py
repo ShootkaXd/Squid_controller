@@ -34,19 +34,15 @@ def check_anomalous_traffic():
         current_sent_bytes, current_received_bytes = traffic.bytes_sent, traffic.bytes_recv
         previous_sent_bytes, previous_received_bytes = previous_network_traffic[interface]
 
-        # Проверка на аномалию, например, если трафик увеличился более чем на 50%
         if (current_sent_bytes - previous_sent_bytes) > 0.5 * previous_sent_bytes or \
                 (current_received_bytes - previous_received_bytes) > 0.5 * previous_received_bytes:
-            # Здесь вы можете добавить логику обработки аномалии, например, отправку события в SIEM
             event_type = "Anomalous Network Traffic"
             timestamp = datetime.now().isoformat()
             source_ip = "N/A"  # логика для определения источника IP
             username = "N/A"  # логика для определения пользователя
             description = f"Anomalous traffic on interface {interface}"
 
-            # Замените следующей строкой кода для отправки события в SIEM
             print(
                 f"Event: {event_type}, Timestamp: {timestamp}, Source IP: {source_ip}, Username: {username}, Description: {description}")
 
-        # Обновление предыдущего трафика
         previous_network_traffic[interface] = (current_sent_bytes, current_received_bytes)

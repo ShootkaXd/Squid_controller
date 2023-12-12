@@ -113,13 +113,16 @@ function toggleAccess(macAddress, currentStatus) {
             statusElement.innerText = newStatus ? 'Разрешен' : 'Запрещен';
 
             buttonElement.innerText = newStatus ? 'Запретить доступ' : 'Разрешить доступ';
+
+            statusElement.style.backgroundColor = newStatus ? 'green' : 'red';
+            buttonElement.className = 'btn btn-action btn-sm ' + (newStatus ? 'btn-danger' : 'btn-success');
         },
         error: function (error) {
             console.error('Ошибка при обновлении статуса пользователя:', error);
         }
     });
-    console.log(`Toggling access for ${macAddress}, currentStatus: ${currentStatus}`);
 }
+
 
 function setInitialAccessStatus() {
     const users = document.querySelectorAll('#usersTable tbody tr');
