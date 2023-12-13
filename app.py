@@ -1,22 +1,24 @@
-import asyncio
-import time
-from flask import Flask, render_template, redirect, url_for, request, jsonify
+import os
+
 from flask_login import LoginManager, login_user, login_required
 from flask_socketio import SocketIO
 from database import User, db
 from forms import LoginForm
 from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
 from SIEM import SIEM, check_anomalous_traffic
-import psutil
-import socket
 from datetime import timedelta
-import sqlite3
-import subprocess
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_limiter.util import get_remote_address
 from flask_limiter import Limiter
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
+import asyncio
+import time
+import sqlite3
+import subprocess
+import psutil
+import socket
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -65,7 +67,10 @@ def login():
         if user_id in users_db and check_password_hash(users_db[user_id]['password_hash'], password):
             user = User(user_id)
             login_user(user)
+            login_user(user, remember=True)
             return redirect(url_for('index'))
+        else:
+            flash('Неверный логин или пароль', 'error')
 
     return render_template('login.html', form=form)
 
@@ -411,7 +416,6 @@ def siem_events():
 previous_network_traffic = {}
 
 
-# Роут для отображения аномального трафика
 @app.route('/anomalous_traffic')
 def anomalous_traffic():
     check_anomalous_traffic()
@@ -459,6 +463,17 @@ def allow_access():
     # run(['systemctl', 'restart', 'squid'])
 
     return redirect(url_for('index'))
+
+
+@app.errorhandler(404)
+def page_not_found(error):
+    return render_template('404.html'), 404
+
+
+# @app.errorhandler(Exception)
+# def handle_exception(e):
+#     app.logger.exception(e)
+#     return render_template('500.html'), 500
 
 
 if __name__ == '__main__':

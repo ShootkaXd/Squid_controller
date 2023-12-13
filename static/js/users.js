@@ -122,21 +122,3 @@ function toggleAccess(macAddress, currentStatus) {
         }
     });
 }
-
-
-function setInitialAccessStatus() {
-    const users = document.querySelectorAll('#usersTable tbody tr');
-    users.forEach(userRow => {
-        const macAddress = userRow.querySelector('td').innerText;
-        const statusElement = userRow.querySelector(`#status_${macAddress}`);
-        const buttonElement = userRow.querySelector('button');
-        const currentStatus = statusElement.innerText === 'Разрешен';
-
-        statusElement.innerText = currentStatus ? 'Разрешен' : 'Запрещен';
-
-        buttonElement.innerText = currentStatus ? 'Запретить доступ' : 'Разрешить доступ';
-
-        statusElement.style.backgroundColor = currentStatus ? 'green' : 'red';
-    });
-}
-window.onload = setInitialAccessStatus;

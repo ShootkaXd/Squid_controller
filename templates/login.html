@@ -6,12 +6,47 @@
     <title>Login</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/login.css') }}">
+
+    <script>
+        // Функция для отображения всплывающего уведомления
+        function showNotification(title, message, type) {
+            Swal.fire({
+                title: title,
+                text: message,
+                icon: type,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 5000,
+                timerProgressBar: true,
+                background: '#343a40', // Цвет фона
+                showClass: {
+                    popup: 'swal2-noanimation',
+                    backdrop: 'swal2-noanimation'
+                },
+                hideClass: {
+                    popup: '',
+                    backdrop: ''
+                }
+            });
+        }
+
+        // Функция для обработки ошибки входа
+        function handleLoginError() {
+            // Проверка условия неудачной попытки входа
+            // В данном примере условие всегда true, замените его на свое
+            if (true) {
+                showNotification('Ошибка', 'Неверный логин или пароль', 'error');
+            }
+        }
+    </script>
+
 </head>
 <body>
 
     <div class="container">
         <h1>Управление доступом</h1>
-        <form method="post" action="/">
+        <form method="post" action="/" onsubmit="handleLoginError()">
             {{ form.hidden_tag() }}
             <label for="user_id">login:</label>
             {{ form.user_id() }}<br>
@@ -19,6 +54,16 @@
             {{ form.password() }}<br>
             <button type="submit">Войти</button>
         </form>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <ul class="flashes">
+                    {% for message in messages %}
+                        <li>{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
     </div>
 
 </body>
