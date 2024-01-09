@@ -1,15 +1,7 @@
 import asyncio
-import time
-from flask import Flask, render_template, redirect, url_for, request, jsonify
-from flask_login import LoginManager, login_user, login_required
-from flask_socketio import SocketIO
-from database import User, db
-from forms import LoginForm
-from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
-from SIEM import SIEM, check_anomalous_traffic
+import os
 import psutil
 import socket
-from datetime import timedelta
 import sqlite3
 import subprocess
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -17,14 +9,34 @@ from flask_limiter.util import get_remote_address
 from flask_limiter import Limiter
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
+from flask_login import LoginManager, login_user, login_required
+from flask_socketio import SocketIO
+from database import User, db
+from forms import LoginForm
+from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
+from SIEM import SIEM, check_anomalous_traffic
+from datetime import timedelta
+from flask_sslify import SSLify
+from wtforms import SelectField
+from flask_wtf import FlaskForm
 
 app = Flask(__name__)
 socketio = SocketIO(app)
-app.secret_key = b'_5#y2L"F4Q8z\n\xec]/'
+app.secret_key = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///access_control.db'
 admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
 admin.add_view(ModelView(User, db.session))
 
+
+# app.config['SESSION_COOKIE_SECURE'] = True  # Устанавливает Secure cookie
+# app.config['SESSION_COOKIE_HTTPONLY'] = True  # Устанавливает HttpOnly cookie
+# app.config['SESSION_TYPE'] = 'filesystem'  # Выберите тип хранения, например, файловая система
+# app.config['SESSION_PERMANENT'] = False  # Сделайте сессии временными
+# app.config['SESSION_USE_SIGNER'] = True  # Используйте подписанные сессии
+# app.config['SESSION_KEY_PREFIX'] = 'niiks_'  # Префикс для ключей сессии
+# app.config['SESSION_COOKIE_SAMESITE'] = 'None'
+# sslify = SSLify(app)
 
 async def main():
     await update_database_with_devices()
@@ -38,12 +50,6 @@ asyncio.run(main())
 
 siem_system = SIEM()
 
-
-@login_manager.user_loader
-def load_user(user_id):
-    return User(user_id)
-
-
 users_db = {'test': {'password_hash': generate_password_hash('test', method='pbkdf2:sha256', salt_length=8)}}
 
 limiter = Limiter(
@@ -51,6 +57,11 @@ limiter = Limiter(
     key_func=get_remote_address,
     storage_uri="memory://",
 )
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User(user_id)
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -66,6 +77,8 @@ def login():
             user = User(user_id)
             login_user(user)
             return redirect(url_for('index'))
+        else:
+            flash('Неправильный логин или пароль', 'error')
 
     return render_template('login.html', form=form)
 
@@ -103,40 +116,9 @@ def emit_system_info():
     socketio.emit('system_info', system_info)
 
 
-def get_system_info():
-    cpu_percent = psutil.cpu_percent()
-    memory_info = psutil.virtual_memory()
-    disk_info = psutil.disk_usage('/')
-    network_info = psutil.net_io_counters(pernic=True)
-    network_traffic = network_info[list(network_info.keys())[0]]
-    sent_bytes = network_traffic.bytes_sent
-    received_bytes = network_traffic.bytes_recv
-
-    return {
-        'cpu_percent': cpu_percent,
-        'memory_percent': memory_info.percent,
-        'disk_percent': disk_info.percent,
-        'sent_bytes': sent_bytes,
-        'received_bytes': received_bytes
-    }
-
-
-def generate_system_info():
-    while True:
-        system_info = get_system_info()
-        socketio.emit('update_system_info', system_info, namespace='/monitoring.css')
-        time.sleep(1)
-
-
 @app.route('/monitoring.css')
 def monitoring():
     return render_template('monitoring.css.html')
-
-
-@socketio.on('connect', namespace='/monitoring.html')
-def connect():
-    system_info = get_system_info()
-    socketio.emit('update_system_info', system_info)
 
 
 @app.route('/index')
@@ -161,10 +143,10 @@ def block_site():
     conn.commit()
     conn.close()
 
-    # blocked_sites = fetch_blocked_sites_from_db()
+    blocked_sites = fetch_blocked_sites_from_db()
 
-    # update_squid_config([], blocked_sites)  # Раскомментируй эту строку
-    # restart_squid()  # Если необходимо перезапустить Squid, раскомментируй эту строку
+    # update_squid_config([], blocked_sites)
+    # restart_squid()
 
     return redirect(url_for('blocked_sites'))
 
@@ -208,14 +190,6 @@ def users():
     return render_template('users.html', users=users)
 
 
-def restart_squid():
-    try:
-        subprocess.run(['systemctl', 'restart', 'squid'], check=True)
-        print("Squid restarted successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error restarting Squid: {e}")
-
-
 @app.template_filter('format_uptime')
 def format_uptime(uptime):
     uptime_delta = timedelta(seconds=uptime)
@@ -224,35 +198,7 @@ def format_uptime(uptime):
     return formatted_uptime
 
 
-def system_info():
-    ip_address = socket.gethostbyname(socket.gethostname())
-    hostname = socket.gethostname()
-
-    uptime_seconds = psutil.boot_time()
-    uptime = str(timedelta(seconds=uptime_seconds))
-
-    return ip_address, hostname, uptime
-
-
 app.jinja_env.filters['format_uptime'] = format_uptime
-
-
-@app.route('/system')
-@login_required
-def system():
-    ip_address, hostname, uptime = get_system_info()
-
-    cpu_percent = psutil.cpu_percent()
-    memory_info = psutil.virtual_memory()
-    disk_info = psutil.disk_usage('/')
-
-    network_stats = psutil.net_io_counters()
-    sent_bytes = network_stats.bytes_sent
-    received_bytes = network_stats.bytes_recv
-
-    return render_template('system.html', ip_address=ip_address, hostname=hostname, uptime=uptime,
-                           cpu_percent=cpu_percent, memory_info=memory_info,
-                           disk_info=disk_info, sent_bytes=sent_bytes, received_bytes=received_bytes)
 
 
 @app.route('/update_user', methods=['POST'])
@@ -341,6 +287,39 @@ def get_new_users():
         return jsonify({'error': 'Failed to fetch new users'})
 
 
+def add_access_rule(ip_address):
+    try:
+        # Открываем файл конфигурации Squid для добавления IP-адреса в список разрешенных
+        with open('/etc/squid/squid.conf', 'a') as f:
+            f.write(f'allow {ip_address}\n')
+
+        # Перезапускаем Squid после изменения конфигурации
+        restart_squid()
+        print(f"Access rule added for IP: {ip_address}")
+    except Exception as e:
+        print(f"Error adding access rule: {e}")
+
+
+def remove_access_rule(ip_address):
+    try:
+        # Открываем файл конфигурации Squid для удаления IP-адреса из списка разрешенных
+        with open('/etc/squid/squid.conf', 'r') as f:
+            lines = f.readlines()
+
+        # Удаляем строку с разрешенным IP-адресом
+        lines = [line for line in lines if f'allow {ip_address}' not in line]
+
+        # Перезаписываем файл конфигурации Squid
+        with open('/etc/squid/squid.conf', 'w') as f:
+            f.writelines(lines)
+
+        # Перезапускаем Squid после изменения конфигурации
+        restart_squid()
+        print(f"Access rule removed for IP: {ip_address}")
+    except Exception as e:
+        print(f"Error removing access rule: {e}")
+
+
 @app.route('/toggle_access', methods=['POST'])
 def toggle_access():
     mac_address = request.form.get('macAddress')
@@ -368,22 +347,31 @@ def toggle_access():
     return jsonify({'newStatus': current_status})
 
 
-# def update_squid_config(allowed_sites, blocked_sites):
-#     config_lines = []
-#
-#     for site in allowed_sites:
-#         config_lines.append(f'acl allowed_sites dstdomain {site}\n')
-#
-#     for site in blocked_sites:
-#         config_lines.append(f'acl blocked_sites dstdomain {site}\n')
-#
-#     config_lines.append('http_access allow allowed_sites\n')
-#     config_lines.append('http_access deny blocked_sites\n')
-#
-#     with open('/etc/squid/squid.conf', 'w') as f:
-#         f.writelines(config_lines)
-#
-#     restart_squid()
+def update_squid_config(allowed_sites, blocked_sites):
+    config_lines = []
+
+    for site in allowed_sites:
+        config_lines.append(f'acl allowed_sites dstdomain {site}\n')
+
+    for site in blocked_sites:
+        config_lines.append(f'acl blocked_sites dstdomain {site}\n')
+
+    config_lines.append('http_access allow allowed_sites\n')
+    config_lines.append('http_access deny blocked_sites\n')
+
+    with open('/etc/squid/squid.conf', 'w') as f:
+        f.writelines(config_lines)
+
+    restart_squid()
+
+
+def restart_squid():
+    try:
+        subprocess.run(['systemctl', 'restart', 'squid'], check=True)
+        print("Squid restarted successfully.")
+    except subprocess.CalledProcessError as e:
+        print(f"Error restarting Squid: {e}")
+
 
 @app.route('/send_event', methods=['POST'])
 def send_event():
@@ -461,6 +449,54 @@ def allow_access():
     return redirect(url_for('index'))
 
 
+@app.route('/system')
+@login_required
+def system():
+    cpu_percent = psutil.cpu_percent()
+    memory_info = psutil.virtual_memory()
+    disk_info = psutil.disk_usage('/')
+
+    network_info = psutil.net_io_counters(pernic=True)
+    network_traffic = network_info[list(network_info.keys())[0]]
+    sent_bytes, received_bytes = network_traffic.bytes_sent, network_traffic.bytes_recv
+
+    system_info = {
+        'cpu_percent': cpu_percent,
+        'memory_percent': memory_info.percent,
+        'disk_percent': disk_info.percent,
+        'sent_bytes': sent_bytes,
+        'received_bytes': received_bytes
+    }
+
+    return render_template('system.html', system_info=system_info)
+
+
+@socketio.on('connect')
+def handle_connect():
+    print('Client connected')
+    emit_system_info()
+    emit_system_info_to_client()
+
+
+def emit_system_info_to_client():
+    cpu_percent = psutil.cpu_percent()
+    memory_info = psutil.virtual_memory()
+    disk_info = psutil.disk_usage('/')
+
+    network_info = psutil.net_io_counters(pernic=True)
+    network_traffic = network_info[list(network_info.keys())[0]]
+    sent_bytes, received_bytes = network_traffic.bytes_sent, network_traffic.bytes_recv
+
+    system_info = {
+        'cpu_percent': cpu_percent,
+        'memory_percent': memory_info.percent,
+        'disk_percent': disk_info.percent,
+        'sent_bytes': sent_bytes,
+        'received_bytes': received_bytes
+    }
+
+    socketio.emit('system_info_to_client', system_info)
+
+
 if __name__ == '__main__':
-    socketio.start_background_task(generate_system_info)
-    app.run(host='0.0.0.0', port=5000)
+    app.run(host='0.0.0.0', port=5000, debug=True)
