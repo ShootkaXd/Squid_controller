@@ -56,3 +56,46 @@ button {
 button:hover {
     background-color: #0056b3;
 }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f8f9fa;
+        }
+
+        h1, h2 {
+            color: #007bff;
+            margin-bottom: 20px;
+        }
+
+        #searchContainer {
+            margin-bottom: 20px;
+        }
+
+        #searchInput {
+            width: 60%;
+            padding: 8px;
+            margin-right: 8px;
+            box-sizing: border-box;
+        }
+
+        #searchButton {
+            padding: 8px 16px;
+        }
+
+        table {
+            margin-top: 20px;
+        }
+
+        th, td {
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        th {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .btn-action {
+            min-width: 100px;
+        }

@@ -1,3 +1,5 @@
+<!-- login.html -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,19 +7,36 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='login.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/login.css') }}">
 </head>
 <body>
 
     <div class="container">
-        <h1>Управление доступом</h1>
-        <form method="post" action="/">
+        <h1 class="mt-5 mb-4">Squid Access Control</h1>
+
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-danger" role="alert">
+                    <ul class="mb-0">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <form method="post" action="/" class="mt-4">
             {{ form.hidden_tag() }}
-            <label for="user_id">User ID:</label>
-            {{ form.user_id() }}<br>
-            <label for="password">Password:</label>
-            {{ form.password() }}<br>
-            <button type="submit">Log In</button>
+            <div class="form-group">
+                <label for="user_id">Login:</label>
+                {{ form.user_id(class="form-control") }}
+            </div>
+            <div class="form-group">
+                <label for="password">Password:</label>
+                {{ form.password(class="form-control") }}
+            </div>
+            <button type="submit" class="btn btn-primary">Войти</button>
         </form>
     </div>
 

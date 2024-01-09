@@ -1,0 +1,8 @@
+/* Add these styles to your CSS file */
+.status-allowed {
+    background-color: green;
+}
+
+.status-forbidden {
+    background-color: red;
+}
