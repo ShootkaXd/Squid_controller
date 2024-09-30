@@ -93,8 +93,6 @@ def handle_connect():
 def monitor():
     return render_template('monitoring_realtime.html')
 
-def dasdasdas():
-
 
 ####################### Системный монитор ##########################
 
