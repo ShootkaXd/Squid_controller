@@ -32,6 +32,9 @@ admin.add_view(ModelView(User, db.session))
 # app.config['SESSION_COOKIE_SECURE'] = True  # Устанавливает Secure cookie
 # app.config['SESSION_COOKIE_HTTPONLY'] = True  # Устанавливает HttpOnly cookie
 # app.config['SESSION_TYPE'] = 'filesystem'  # Выберите тип хранения, например, файловая система
+
+
+
 # app.config['SESSION_PERMANENT'] = False  # Сделайте сессии временными
 # app.config['SESSION_USE_SIGNER'] = True  # Используйте подписанные сессии
 # app.config['SESSION_KEY_PREFIX'] = 'niiks_'  # Префикс для ключей сессии
