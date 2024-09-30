@@ -46,15 +46,15 @@ To run the program in your local environment
 
 # Starting the server
 * windows
-  1. Configure the host and local network in the seting.py file 
+  1. Configure the host and local network in the ```seting.py``` file 
   2. open cmd/PowerShall
-  3. go to the project folder cd path\to\your
-  4. activate the virtual environment venv\Scripts\activate
-  5. python app.py run
+  3. go to the project folder ```cd path\to\your```
+  4. activate the virtual environment ```venv\Scripts\activate```
+  5. ```python app.py run```
 * Ubuntu
-   1. Configure the host and local network in the seting.py file 
+   1. Configure the host and local network in the ```seting.py``` file 
    2. open cmd
-   3. o to the project folder "cd path\to\your"
-   4. activate the virtual environment "source venv/bin/activate"
+   3. o to the project folder ```cd path\to\your```
+   4. activate the virtual environment ```source venv/bin/activate```
    5. sudo apt install nmap (Если необходимо) 
-   6. python app.py run
+   6. ```python app.py run```
