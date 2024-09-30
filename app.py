@@ -399,7 +399,6 @@ def siem_events():
 previous_network_traffic = {}
 
 
-# Роут для отображения аномального трафика
 @app.route('/anomalous_traffic')
 def anomalous_traffic():
     check_anomalous_traffic()

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,7 +13,7 @@
 <body>
 
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <a class="navbar-brand" href="#">
+        <a class="navbar-brand" href="#">
             <img src="static/png/khrunichev_logo.png" alt="Squid Access Management" height="150">
         </a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
@@ -22,76 +22,67 @@
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav">
                 <li class="nav-item active">
-                    <a class="nav-link" href="#users">Главная</a>
+                    <a class="nav-link" href="#" data-url="/users">Главная</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/users">Пользователи</a>
+                    <a class="nav-link" href="#" data-url="/blocked_sites">Заблокированные сайты</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/blocked_sites">Заблокированные сайты</a>
+                    <a class="nav-link" href="#" data-url="/siem_events">SIEM (в разработке)</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/siem_events">SIEM (в разработки) </a>
+                    <a class="nav-link" href="#" data-url="/anomalous_traffic">SIEM вторжение (в разработке)</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/anomalous_traffic">SIEM вторжение (в разработки) </a>
+                    <a class="nav-link" href="#" data-url="/monitoring">Мониторинг (в разработке)</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="/monitoring">Мониторинг (в разработки) </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/system"> О системе (в разработки)</a>
+                    <a class="nav-link" href="#" data-url="/system">О системе (в разработке)</a>
                 </li>
             </ul>
         </div>
     </nav>
 
-    <div class="jumbotron">
-        <div class="container">
-            <h1 class="display-4">Управление доступом в Squid</h1>
+    <div id="content" class="container">
+        <!-- Здесь будет динамически загружаться контент -->
+        <div class="jumbotron">
+            <div class="container">
+                <h1 class="display-4">Управление доступом в Squid</h1>
+            </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <table id="usersTable" class="table table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                        <th>IP-адрес</th>
-                        <th>MAC-адрес</th>
-                        <th>Имя пользователя</th>
-                        <th>Отдел</th>
-                        <th>Номер кабинета</th>
-                        <th>Статус</th>
-                        <th>Доступ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                        <tr>
-                            <td>{{ user[0] }}</td>
-                            <td>{{ user[1] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'username')">{{ user[2] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'department')">{{ user[3] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'number_cabinet')">{{ user[4] }}</td>
-                            <td id="status_{{ user[1] }}" style="background-color: {{ 'green' if user[5] else 'red' }}">
-                                {{ "Разрешен" if user[5] is defined and user[5] else "Запрещен" }}
-                            </td>
-                            <td>
-                                <button onclick="toggleAccess('{{ user[1] }}', {{ user[5] }})" class="btn btn-action btn-sm {{ 'btn-danger' if user[5] else 'btn-success' }}">
-                                    {{ "Запретить" if user[5] else "Разрешить" }} доступ
-                                </button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-<script src="{{ url_for('static', filename='js/users.js') }}"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Функция для загрузки контента через AJAX
+            function loadContent(url) {
+                $.ajax({
+                    url: url,
+                    method: 'GET',
+                    success: function(data) {
+                        $('#content').html(data);
+                    },
+                    error: function() {
+                        $('#content').html('<p>Ошибка загрузки данных</p>');
+                    }
+                });
+            }
+
+            // При нажатии на элемент навигации, загружаем контент
+            $('a.nav-link').on('click', function(e) {
+                e.preventDefault(); // Отключаем стандартный переход
+                var url = $(this).data('url'); // Получаем URL из атрибута data-url
+                loadContent(url); // Загружаем контент
+            });
+
+            // Загрузка страницы пользователей по умолчанию
+            loadContent('/users');
+        });
+    </script>
+
 </body>
 </html>
