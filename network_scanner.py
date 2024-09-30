@@ -2,6 +2,8 @@ import ipaddress
 import aiosqlite
 from scapy.layers.l2 import ARP, Ether, srp
 
+import setings
+
 
 async def scan_local_network(ip):
     try:
@@ -22,7 +24,7 @@ async def scan_local_network(ip):
 
 async def update_database_with_devices():
     try:
-        local_network_ip = "192.168.123.0/24"
+        local_network_ip = setings.scan_network
         devices = await scan_local_network(local_network_ip)
 
         devices.sort(key=lambda x: ipaddress.IPv4Address(x['ip']))

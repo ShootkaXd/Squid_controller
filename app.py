@@ -12,13 +12,13 @@ from flask_admin.contrib.sqla import ModelView
 from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
 from flask_login import LoginManager, login_user, login_required
 from flask_socketio import SocketIO
-
 import version
 from database import User, db
 from forms import LoginForm
 from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
 from SIEM import SIEM, check_anomalous_traffic
 from datetime import timedelta
+import setings
 from flask_sslify import SSLify
 from wtforms import SelectField
 from flask_wtf import FlaskForm
@@ -55,7 +55,6 @@ siem_system = SIEM()
 users_db = {'test': {'password_hash': generate_password_hash('test', method='pbkdf2:sha256', salt_length=8)}}
 
 limiter = Limiter(
-    app,
     key_func=get_remote_address,
     storage_uri="memory://",
 )
@@ -505,4 +504,4 @@ def emit_system_info_to_client():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host=setings.host, port=5000, debug=True)
