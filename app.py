@@ -12,6 +12,8 @@ from flask_admin.contrib.sqla import ModelView
 from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
 from flask_login import LoginManager, login_user, login_required
 from flask_socketio import SocketIO
+
+import version
 from database import User, db
 from forms import LoginForm
 from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
@@ -62,6 +64,11 @@ limiter = Limiter(
 @login_manager.user_loader
 def load_user(user_id):
     return User(user_id)
+
+
+@app.context_processor
+def inject_version():
+    return dict(version=version.__version__)
 
 
 @app.route('/', methods=['GET', 'POST'])
