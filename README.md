@@ -46,17 +46,18 @@ To run the program in your local environment
 
 # Starting the server
 * windows
-  1. Configure the host and local network in the ```seting.py``` file 
-  2. open cmd/PowerShall
-  3. go to the project folder ```cd path\to\your```
-  4. activate the virtual environment ```venv\Scripts\activate```
-  5. ```python app.py run```
+  1. Configure the host and local network in the ```seting.py``` file
+  2. install ```Nmap```
+  3. open cmd/PowerShall
+  4. go to the project folder ```cd path\to\your```
+  5. activate the virtual environment ```venv\Scripts\activate```
+  6. ```python app.py run```
 * Ubuntu
    1. Configure the host and local network in the ```seting.py``` file 
    2. open cmd
    3. o to the project folder ```cd path\to\your```
    4. activate the virtual environment ```source venv/bin/activate```
-   5. sudo apt install nmap (Если необходимо) 
+   5. ```sudo apt install nmap``` (Если необходимо) 
    6. ```python app.py run```
 
 #
@@ -103,14 +104,15 @@ To run the program in your local environment
 # Запуск сервера
 * windows
   1. Настройте хост и локальную сеть в файле ```seting.py```
-  2. откройте cmd/PowerShall
-  3. перейдите в папку проекта ```cd path\to\your```
-  4. активируйте виртуальную среду ```venv\Scripts\activate```
-  5. ```python app.py run```
+  2. Установить ```Nmap``` 
+  3. откройте ```cmd/PowerShall```
+  4. перейдите в папку проекта ```cd path\to\your```
+  5. активируйте виртуальную среду ```venv\Scripts\activate```
+  6. ```python app.py run```
 * Ubuntu
   1. Настройте хост и локальную сеть в файле ```seting.py```
-  2. откройте cmd
+  2. откройте ```cmd```
   3. перейдите в папку проекта ```cd path\to\your```
   4. активируйте виртуальную среду ```source venv/bin/activate```
-  5. sudo apt install nmap (Если необходимо)
+  5. ```sudo apt install nmap``` (Если необходимо)
   6. ```python app.py run```
