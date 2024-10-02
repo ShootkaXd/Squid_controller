@@ -16,7 +16,6 @@ import version
 from database import User, db
 from forms import LoginForm
 from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
-from SIEM import SIEM, check_anomalous_traffic
 from datetime import timedelta
 import setings
 from flask_sslify import SSLify
@@ -49,8 +48,6 @@ devices = scan_local_network(local_network_ip)
 
 login_manager = LoginManager(app)
 asyncio.run(main())
-
-siem_system = SIEM()
 
 users_db = {'test': {'password_hash': generate_password_hash('test', method='pbkdf2:sha256', salt_length=8)}}
 
@@ -94,10 +91,6 @@ def handle_connect():
     print('Client connected')
     emit_system_info()
 
-
-@app.route('/monitoring_realtime')
-def monitor():
-    return render_template('monitoring_realtime.html')
 
 
 ####################### Системный монитор ##########################
@@ -377,38 +370,6 @@ def restart_squid():
         print("Squid restarted successfully.")
     except subprocess.CalledProcessError as e:
         print(f"Error restarting Squid: {e}")
-
-
-@app.route('/send_event', methods=['POST'])
-def send_event():
-    try:
-        event_type = request.form['eventType']
-        source_ip = request.form['sourceIp']
-        username = request.form['username']
-        description = request.form['description']
-
-        siem_system.log_event(event_type, source_ip, username, description)
-
-        return jsonify({"status": "success"})
-    except Exception as e:
-        print(f"Error during SIEM event sending: {e}")
-        return jsonify({"status": "error"})
-
-
-@app.route('/siem_events')
-@login_required
-def siem_events():
-    events = siem_system.get_events()
-    return render_template('siem_events.html', events=events)
-
-
-previous_network_traffic = {}
-
-
-@app.route('/anomalous_traffic')
-def anomalous_traffic():
-    check_anomalous_traffic()
-    return render_template('anomalous_traffic.html')
 
 
 ################### Удалить ###################

@@ -4,4 +4,6 @@
 
 /.vs
 access_control.db
-
+/venv
+/static/images
+/__pycache__
