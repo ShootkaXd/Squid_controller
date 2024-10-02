@@ -67,7 +67,7 @@ To run the program in your local environment
 * Информация о системе
 * Система SIEM
 
-# Install
+# Установка
 
 Чтобы запустить программу в вашей локальной среде
 
