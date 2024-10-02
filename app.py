@@ -125,7 +125,7 @@ def monitoring():
 def index():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet, access_allowed FROM users')
+    cursor.execute('SELECT ip_address, mac_address, hostname, last_seen, username, department, number_cabinet, access_allowed FROM users')
     users = cursor.fetchall()
     conn.close()
     return render_template('index.html', users=users)
@@ -182,11 +182,17 @@ def fetch_blocked_sites_from_db():
 def users():
     conn = sqlite3.connect('access_control.db')
     cursor = conn.cursor()
-    cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet, access_allowed FROM users')
+    cursor.execute('SELECT ip_address, mac_address, hostname, last_seen, username, department, number_cabinet, access_allowed FROM users')
     users = cursor.fetchall()
     conn.close()
 
     return render_template('users.html', users=users)
+
+def get_hostname(ip_address):
+    try:
+        return socket.gethostbyaddr(ip_address)[0]
+    except socket.herror:
+        return "Неизвестно"
 
 
 @app.template_filter('format_uptime')

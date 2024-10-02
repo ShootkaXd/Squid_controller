@@ -13,6 +13,8 @@ class User(db.Model, UserMixin):
     id = db.Column(db.Integer, primary_key=True)
     ip_address = db.Column(db.String(15))
     mac_address = db.Column(db.String(17), unique=True)
+    hostname = db.Column(db.String(255))
+    last_seen = db.Column(db.String(255))
     username = db.Column(db.String(255))
     department = db.Column(db.String(255))
     number_cabinet = db.Column(db.String(255))
@@ -26,6 +28,8 @@ cursor.execute('''
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         ip_address TEXT,
         mac_address TEXT,
+        hostname TEXT,
+        last_seen TEXT,
         username TEXT,
         department TEXT,
         number_cabinet TEXT,

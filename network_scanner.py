@@ -1,6 +1,8 @@
 import ipaddress
 import aiosqlite
 from scapy.layers.l2 import ARP, Ether, srp
+import socket
+from datetime import datetime
 
 import setings
 
@@ -15,7 +17,20 @@ async def scan_local_network(ip):
 
         devices = []
         for sent, received in result:
-            devices.append({'ip': received.psrc, 'mac': received.hwsrc.upper()})
+            ip_address = received.psrc
+            mac_address = received.hwsrc.upper()
+
+            try:
+                hostname = socket.gethostbyaddr(ip_address)[0]
+            except socket.herror:
+                hostname = None
+
+            devices.append({
+                'ip': ip_address,
+                'mac': mac_address,
+                'hostname': hostname,
+                'last_seen': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            })
 
         return devices
     except Exception as e:
@@ -34,6 +49,8 @@ async def update_database_with_devices():
                 for device in devices:
                     ip_address = device['ip']
                     mac_address = device['mac']
+                    hostname = device['hostname'] or "Неизвестно"
+                    last_seen = device['last_seen']
                     username = ""
                     department = ""
                     number_cabinet = ""
@@ -41,11 +58,17 @@ async def update_database_with_devices():
                     await cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac_address,))
                     existing_device = await cursor.fetchone()
 
-                    if not existing_device:
+                    if existing_device:
                         await cursor.execute(
-                            'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
-                            (username, ip_address, mac_address, department, number_cabinet))
-                        await conn.commit()
+                            'UPDATE users SET last_seen = ?, hostname = ? WHERE mac_address = ?',
+                            (last_seen, hostname, mac_address)
+                        )
+                    else:
+                        await cursor.execute(
+                            'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet, '
+                            'hostname, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                            (username, ip_address, mac_address, department, number_cabinet, hostname, last_seen))
+                    await conn.commit()
     except Exception as e:
         print(f"Error during database update: {e}")
 

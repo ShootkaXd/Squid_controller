@@ -21,81 +21,76 @@ function filterUsers() {
         }
     }
 }
+
 async function fetchNewUsers() {
-       try {
-           const response = await fetch('/get_new_users');
-           const newUsers = await response.json();
-
-           if (response.ok) {
-                updateNewUsersTable(newUsers);
-           } else {
-                console.error('Failed to fetch new users:', response.statusText);
-           }
-       } catch (error) {
-            console.error('Error fetching new users:', error);
-       }
-}
-
-    function updateNewUsersTable(newUsers) {
-        const newUsersTable = document.getElementById('newUsersTable');
-        newUsersTable.innerHTML = '';
-
-        newUsers.forEach(newUser => {
-            const row = document.createElement('tr');
-            row.dataset.mac = newUser.mac;
-            row.innerHTML = `
-                <td>${newUser.ip}</td>
-                <td>${newUser.mac}</td>
-                <td contenteditable="true">${newUser.username}</td>
-                <td contenteditable="true">${newUser.department}</td>
-                <td contenteditable="true">${newUser.number_cabinet}</td>
-                <td>
-                    <button onclick="confirmAccess('${newUser.mac}')">Подтвердить доступ</button>
-                </td>
-            `;
-            newUsersTable.appendChild(row);
-        });
-    }
-
-    window.addEventListener('load', () => {
-        fetchNewUsers();
-        fetchUsers();
-    });
-
-async function saveChanges() {
-        const usersTable = document.getElementById('usersTable');
-        const rows = usersTable.querySelectorAll('tbody tr');
-
-        const usersData = [];
-        rows.forEach(row => {
-            const cells = row.querySelectorAll('td');
-            const userData = {
-                ip: cells[0].textContent,
-                mac: cells[1].textContent,
-                username: cells[2].textContent,
-                department: cells[3].textContent,
-                cabinet: cells[4].textContent,
-            };
-            usersData.push(userData);
-        });
-
-
-        const response = await fetch('/update_user', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                users: usersData,
-            }),
-        });
+    try {
+        const response = await fetch('/get_new_users');
+        const newUsers = await response.json();
 
         if (response.ok) {
-            console.log('Changes saved successfully!');
+            updateNewUsersTable(newUsers);
         } else {
-            console.error('Failed to save changes.');
+            console.error('Failed to fetch new users:', response.statusText);
         }
+    } catch (error) {
+        console.error('Error fetching new users:', error);
     }
+}
+
+function updateNewUsersTable(newUsers) {
+    const newUsersTable = document.getElementById('newUsersTable');
+    newUsersTable.innerHTML = '';
+
+    newUsers.forEach(newUser => {
+        const row = document.createElement('tr');
+        row.dataset.mac = newUser.mac;
+        row.innerHTML = `
+            <td>${newUser.ip}</td>
+            <td>${newUser.mac}</td>
+            <td contenteditable="true">${newUser.username}</td>
+            <td contenteditable="true">${newUser.department}</td>
+            <td contenteditable="true">${newUser.number_cabinet}</td>
+            <td>
+                <button onclick="confirmAccess('${newUser.mac}')">Подтвердить доступ</button>
+            </td>
+        `;
+        newUsersTable.appendChild(row);
+    });
+}
+
+async function saveChanges() {
+    const usersTable = document.getElementById('usersTable');
+    const rows = usersTable.querySelectorAll('tbody tr');
+
+    const usersData = [];
+    rows.forEach(row => {
+        const cells = row.querySelectorAll('td');
+        const userData = {
+            ip: cells[0].textContent,
+            mac: cells[1].textContent,
+            username: cells[2].textContent,
+            department: cells[3].textContent,
+            cabinet: cells[4].textContent,
+        };
+        usersData.push(userData);
+    });
+
+    const response = await fetch('/update_user', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            users: usersData,
+        }),
+    });
+
+    if (response.ok) {
+        console.log('Changes saved successfully!');
+    } else {
+        console.error('Failed to save changes.');
+    }
+}
 
 function toggleAccess(macAddress, currentStatus) {
     $.ajax({
@@ -123,7 +118,6 @@ function toggleAccess(macAddress, currentStatus) {
     });
 }
 
-
 function setInitialAccessStatus() {
     const users = document.querySelectorAll('#usersTable tbody tr');
     users.forEach(userRow => {
@@ -139,4 +133,9 @@ function setInitialAccessStatus() {
         statusElement.style.backgroundColor = currentStatus ? 'green' : 'red';
     });
 }
-window.onload = setInitialAccessStatus;
+
+window.addEventListener('load', () => {
+    fetchNewUsers();
+    fetchUsers();
+    setInitialAccessStatus();
+});

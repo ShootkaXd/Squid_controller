@@ -50,6 +50,8 @@
                     <tr>
                         <th>IP-адрес</th>
                         <th>MAC-адрес</th>
+                        <th>Сетевое имя</th>
+                        <th>Последнее время в сети</th>
                         <th>Имя пользователя</th>
                         <th>Отдел</th>
                         <th>Номер кабинета</th>
@@ -62,15 +64,17 @@
                         <tr>
                             <td>{{ user[0] }}</td>
                             <td>{{ user[1] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'username')">{{ user[2] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'department')">{{ user[3] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'number_cabinet')">{{ user[4] }}</td>
+                            <td>{{ user[2] }}</td>
+                            <td>{{ user[3] }}</td>
+                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'username')">{{ user[4] }}</td>
+                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'department')">{{ user[5] }}</td>
+                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'number_cabinet')">{{ user[6] }}</td>
                             <td id="status_{{ user[1] }}" style="background-color: {{ 'green' if user[5] else 'red' }}">
-                                {{ "Разрешен" if user[5] is defined and user[5] else "Запрещен" }}
+                                {{ "Разрешен" if user[7] is defined and user[7] else "Запрещен" }}
                             </td>
                             <td>
                                 <button onclick="toggleAccess('{{ user[1] }}', {{ user[5] }})" class="btn btn-action btn-sm {{ 'btn-danger' if user[5] else 'btn-success' }}">
-                                    {{ "Запретить" if user[5] else "Разрешить" }} доступ
+                                    {{ "Запретить" if user[7] else "Разрешить" }} доступ
                                 </button>
                             </td>
                         </tr>
