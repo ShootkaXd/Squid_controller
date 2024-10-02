@@ -4,6 +4,6 @@
 
 /.vs
 access_control.db
-
-node_modules
-/.venv
+/venv
+/static/images
+/__pycache__
