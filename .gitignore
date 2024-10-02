@@ -4,4 +4,5 @@
 
 /.vs
 access_control.db
-
+/venv
+/static/images
