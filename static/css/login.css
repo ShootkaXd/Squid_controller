@@ -1,5 +1,4 @@
 /* space-login.css */
-
 body {
     background-color: #001f3f; /* Dark blue background */
     color: #ffffff; /* White text */
@@ -9,12 +8,71 @@ body {
     height: 100vh;
     margin: 0;
 }
+.form-icon{
+    color: #6c9fb3;
+    font-size: 55px;
+    text-align: center;
+    line-height: 100px;
+    width: 100px;
+    height:100px;
+    margin: 0 auto 15px;
+    border-radius: 50px;
+    box-shadow: 7px 7px 10px #6fa4da, -5px -7px 10px #ffffff;
+   }
 
 .container {
     background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white container */
-    padding: 30px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(255, 255, 255, 0.2); /* White box shadow */
+    padding: 90px;
+    max-width: 800px;
+    border-radius: 0px;
+    box-shadow: 0 0 20px rgba(240, 232, 232, 0.2); /* White box shadow */
+}
+
+.razdelitel{
+    position: relative;
+    display: block;
+    margin:25px auto 20px;
+    width: 1px;
+    height: 2px;
+}
+.razdelitel:before,
+.razdelitel:after{
+    content:'';
+    position: absolute;
+    top:0;
+    width: 180px;
+    height: 2px;
+    background-color: rgb(14, 225, 253);
+}
+   
+.razdelitel:before{
+    left:15px;
+}
+.razdelitel:after{
+    right: 15px;
+}
+.razdelitel div{
+    position: relative;
+}
+.razdelitel div:before,
+.razdelitel div:after{
+    content:'';
+    position: absolute;
+    top:50%;
+    margin-top: -4px;
+    width: 10px;
+    height: 10px;
+    border:1px solid rgb(0, 247, 255);
+    -webkit-transform: rotate(45deg);
+    -ms-transform: rotate(45deg);
+    -o-transform: rotate(45deg);
+    transform: rotate(45deg);
+}
+.razdelitel div:before{
+    left: -7px;
+}
+.razdelitel div:after{
+    right: -7px;
 }
 
 h1 {
@@ -32,24 +90,15 @@ label {
     margin-bottom: 8px;
 }
 
-input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 20px;
-    box-sizing: border-box;
-    border: 1px solid #70a9ff; /* Light blue border */
-    border-radius: 4px;
-    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
-    color: #ffffff; /* White text */
-}
 
 button {
-    background-color: #70a9ff; /* Light blue button color */
-    color: white;
-    padding: 10px 15px;
     border: none;
-    border-radius: 4px;
-    cursor: pointer;
+    width: 100%;
+    padding: 10px 20px;
+    border: none;
+    font-size: 14px;
+    text-transform: uppercase;
+    margin: 20px 0 30px 0;
 }
 
 button:hover {
