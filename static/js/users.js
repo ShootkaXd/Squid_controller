@@ -1,23 +1,19 @@
 function filterUsers() {
-    var input, filter, table, tr, tdUsername, tdIP, i, txtValueUsername, txtValueIP;
-    input = document.getElementById("searchInput");
-    filter = input.value.toUpperCase();
-    table = document.getElementById("usersTable");
-    tr = table.getElementsByTagName("tr");
+    const input = document.getElementById("searchInput");
+    const filter = input.value.toUpperCase();
+    const table = document.getElementById("usersTable");
+    const tr = table.getElementsByTagName("tr");
 
-    for (i = 1; i < tr.length; i++) {
-        tdUsername = tr[i].getElementsByTagName("td")[2];  // Column index for username
-        tdIP = tr[i].getElementsByTagName("td")[0];  // Column index for IP address
+    for (let i = 1; i < tr.length; i++) {
+        const tdUsername = tr[i].getElementsByTagName("td")[2]; // Username column
+        const tdIP = tr[i].getElementsByTagName("td")[0]; // IP column
 
         if (tdUsername && tdIP) {
-            txtValueUsername = tdUsername.textContent || tdUsername.innerText;
-            txtValueIP = tdIP.textContent || tdIP.innerText;
+            const txtValueUsername = tdUsername.textContent || tdUsername.innerText;
+            const txtValueIP = tdIP.textContent || tdIP.innerText;
 
-            if (txtValueUsername.toUpperCase().indexOf(filter) > -1 || txtValueIP.toUpperCase().indexOf(filter) > -1) {
-                tr[i].style.display = "";
-            } else {
-                tr[i].style.display = "none";
-            }
+            const isVisible = txtValueUsername.toUpperCase().includes(filter) || txtValueIP.toUpperCase().includes(filter);
+            tr[i].style.display = isVisible ? "" : "none";
         }
     }
 }
@@ -28,6 +24,9 @@ async function fetchNewUsers() {
         const newUsers = await response.json();
 
         if (response.ok) {
+            if (newUsers.length === 0) {
+                console.warn('Нет новых пользователей для отображения.');
+            }
             updateNewUsersTable(newUsers);
         } else {
             console.error('Failed to fetch new users:', response.statusText);
@@ -39,6 +38,8 @@ async function fetchNewUsers() {
 
 function updateNewUsersTable(newUsers) {
     const newUsersTable = document.getElementById('newUsersTable');
+    if (!newUsersTable) return; // Проверка существования элемента
+
     newUsersTable.innerHTML = '';
 
     newUsers.forEach(newUser => {
@@ -47,6 +48,8 @@ function updateNewUsersTable(newUsers) {
         row.innerHTML = `
             <td>${newUser.ip}</td>
             <td>${newUser.mac}</td>
+            <td>${newUser.hostname}</td>
+            <td>${newUser.last_seen}</td>
             <td contenteditable="true">${newUser.username}</td>
             <td contenteditable="true">${newUser.department}</td>
             <td contenteditable="true">${newUser.number_cabinet}</td>
@@ -68,9 +71,11 @@ async function saveChanges() {
         const userData = {
             ip: cells[0].textContent,
             mac: cells[1].textContent,
-            username: cells[2].textContent,
-            department: cells[3].textContent,
-            cabinet: cells[4].textContent,
+            hostname: cells[2].textContent,
+            last_seen: cells[3].textContent,
+            username: cells[4].textContent,
+            department: cells[5].textContent,
+            cabinet: cells[6].textContent,
         };
         usersData.push(userData);
     });

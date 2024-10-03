@@ -2,22 +2,25 @@ import ipaddress
 import aiosqlite
 from scapy.layers.l2 import ARP, Ether, srp
 import socket
+import asyncio
 from datetime import datetime
-
 import settings
+from flask import Flask
 
+app = Flask(__name__)
 
 async def scan_local_network(ip):
     devices = []
+    print(f"Сканирование сети {ip}...")  # Вывод информации о начале сканирования
     try:
         arp_request = ARP(pdst=ip)
         ether_frame = Ether(dst="ff:ff:ff:ff:ff:ff")
         packet = ether_frame / arp_request
-        result = srp(packet, timeout=10, verbose=0)[0]
+        result = srp(packet, timeout=5, verbose=0)[0]
 
         for _, received in result:
             ip_address = received.psrc
-            mac_address = received.hwsrc.upper()
+            mac_address = received.hwsrc.upper() if received.hwsrc else "Неизвестно"
 
             hostname = await get_hostname(ip_address)
 
@@ -28,9 +31,14 @@ async def scan_local_network(ip):
                 'last_seen': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             })
 
-    except Exception as e:
-        print(f"Error during network scan: {e}")
+            print(
+                f"Обнаружено устройство: IP={ip_address}, MAC={mac_address}, hostname={hostname}")  # Вывод информации о каждом найденном устройстве
 
+    except Exception as e:
+        print(f"Ошибка во время сканирования сети: {e}")
+
+    print(
+        f"Сканирование сети {ip} завершено. Найдено устройств: {len(devices)}")  # Вывод информации о завершении сканирования
     return devices
 
 
@@ -54,7 +62,7 @@ async def update_database_with_devices():
                 await conn.commit()
 
     except Exception as e:
-        print(f"Error during database update: {e}")
+        print(f"Ошибка при обновлении базы данных: {e}")
 
 
 async def upsert_device(cursor, device):
@@ -63,33 +71,24 @@ async def upsert_device(cursor, device):
     hostname = device['hostname']
     last_seen = device['last_seen']
 
-    await cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac_address,))
-    existing_device = await cursor.fetchone()
-
-    if existing_device:
-        await cursor.execute(
-            'UPDATE users SET last_seen = ?, hostname = ? WHERE mac_address = ?',
-            (last_seen, hostname, mac_address)
-        )
-    else:
+    if mac_address == "Неизвестно":
         await cursor.execute(
             'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet, '
             'hostname, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?)',
-            ("", ip_address, mac_address, "", "", hostname, last_seen)
+            ("", ip_address, None, "", "", hostname, last_seen)
         )
+    else:
+        await cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac_address,))
+        existing_device = await cursor.fetchone()
 
-
-def get_mac_address(ip_address):
-    try:
-        arp = ARP(pdst=ip_address)
-        ether = Ether(dst="ff:ff:ff:ff:ff:ff")
-        packet = ether / arp
-
-        result = srp(packet, timeout=3, verbose=0)[0]
-
-        if result:
-            return result[0][1].hwsrc.upper()
-    except Exception as e:
-        print(f"Error getting MAC address for {ip_address}: {e}")
-
-    return None
+        if existing_device:
+            await cursor.execute(
+                'UPDATE users SET last_seen = ?, hostname = ? WHERE mac_address = ?',
+                (last_seen, hostname, mac_address)
+            )
+        else:
+            await cursor.execute(
+                'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet, '
+                'hostname, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                ("", ip_address, mac_address, "", "", hostname, last_seen)
+            )

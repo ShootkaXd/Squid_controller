@@ -4,6 +4,9 @@ import psutil
 import socket
 import sqlite3
 import subprocess
+import threading
+import version
+import settings
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_limiter.util import get_remote_address
 from flask_limiter import Limiter
@@ -12,12 +15,10 @@ from flask_admin.contrib.sqla import ModelView
 from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
 from flask_login import LoginManager, login_user, login_required
 from flask_socketio import SocketIO
-import version
 from database import User, db
 from forms import LoginForm
-from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
+from network_scanner import update_database_with_devices, scan_local_network
 from datetime import timedelta
-import settings
 from flask_sslify import SSLify
 from wtforms import SelectField
 from flask_wtf import FlaskForm
@@ -69,11 +70,6 @@ def login():
     return render_template('login.html', form=form)
 
 
-
-
-
-####################### Системный монитор ##########################
-
 @app.route('/index')
 @login_required
 def index():
@@ -109,13 +105,6 @@ def users():
     conn.close()
 
     return render_template('users.html', users=users)
-
-def get_hostname(ip_address):
-    try:
-        return socket.gethostbyaddr(ip_address)[0]
-    except socket.herror:
-        return "Неизвестно"
-
 
 @app.template_filter('format_uptime')
 def format_uptime(uptime):
@@ -192,61 +181,6 @@ def confirm_access():
         print(e)
         return jsonify({'status': 'error', 'message': 'Failed to confirm access'})
 
-
-@app.route('/get_new_users')
-def get_new_users():
-    try:
-        conn = sqlite3.connect('access_control.db')
-        cursor = conn.cursor()
-
-        cursor.execute('SELECT ip_address, mac_address, username, department, number_cabinet FROM new_users')
-        new_users = cursor.fetchall()
-
-        conn.close()
-
-        new_user_data = [
-            {'ip': user[0], 'mac': user[1], 'username': user[2], 'department': user[3], 'number_cabinet': user[4]} for
-            user in new_users]
-
-        return jsonify(new_user_data)
-    except Exception as e:
-        print(e)
-        return jsonify({'error': 'Failed to fetch new users'})
-
-
-def add_access_rule(ip_address):
-    try:
-        # Открываем файл конфигурации Squid для добавления IP-адреса в список разрешенных
-        with open('/etc/squid/squid.conf', 'a') as f:
-            f.write(f'allow {ip_address}\n')
-
-        # Перезапускаем Squid после изменения конфигурации
-        restart_squid()
-        print(f"Access rule added for IP: {ip_address}")
-    except Exception as e:
-        print(f"Error adding access rule: {e}")
-
-
-def remove_access_rule(ip_address):
-    try:
-        # Открываем файл конфигурации Squid для удаления IP-адреса из списка разрешенных
-        with open('/etc/squid/squid.conf', 'r') as f:
-            lines = f.readlines()
-
-        # Удаляем строку с разрешенным IP-адресом
-        lines = [line for line in lines if f'allow {ip_address}' not in line]
-
-        # Перезаписываем файл конфигурации Squid
-        with open('/etc/squid/squid.conf', 'w') as f:
-            f.writelines(lines)
-
-        # Перезапускаем Squid после изменения конфигурации
-        restart_squid()
-        print(f"Access rule removed for IP: {ip_address}")
-    except Exception as e:
-        print(f"Error removing access rule: {e}")
-
-
 @app.route('/toggle_access', methods=['POST'])
 def toggle_access():
     mac_address = request.form.get('macAddress')
@@ -273,78 +207,16 @@ def toggle_access():
     # Возвращаем новый статус в формате JSON
     return jsonify({'newStatus': current_status})
 
+def run_periodic_scan():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    while True:
+        loop.run_until_complete(update_database_with_devices())
+        loop.run_until_complete(asyncio.sleep(60))  # Задержка 60 секунд перед следующим сканированием
 
-def update_squid_config(allowed_sites, blocked_sites):
-    config_lines = []
-
-    for site in allowed_sites:
-        config_lines.append(f'acl allowed_sites dstdomain {site}\n')
-
-    for site in blocked_sites:
-        config_lines.append(f'acl blocked_sites dstdomain {site}\n')
-
-    config_lines.append('http_access allow allowed_sites\n')
-    config_lines.append('http_access deny blocked_sites\n')
-
-    with open('/etc/squid/squid.conf', 'w') as f:
-        f.writelines(config_lines)
-
-    restart_squid()
-
-
-def restart_squid():
-    try:
-        subprocess.run(['systemctl', 'restart', 'squid'], check=True)
-        print("Squid restarted successfully.")
-    except subprocess.CalledProcessError as e:
-        print(f"Error restarting Squid: {e}")
-
-
-################### Удалить ###################
-
-
-@app.route('/remove_site/<site_id>')
-@login_required
-def remove_site(site_id):
-    conn = sqlite3.connect('access_control.db')
-    cursor = conn.cursor()
-    cursor.execute('DELETE FROM blocked_sites WHERE id = ?', (site_id,))
-    conn.commit()
-    conn.close()
-
-    # blocked_sites = fetch_blocked_sites_from_db()
-    #
-    # update_squid_config([], blocked_sites)
-    # restart_squid()
-
-    return redirect(url_for('blocked_sites'))
-
-
-@app.route('/remove_user', methods=['POST'])
-@login_required
-def allow_access():
-    username = request.form.get('username')
-    ip_address = request.form.get('ip_address')
-    mac_address = get_mac_address(ip_address)
-    department = request.form.get('department')
-    number_cabinet = request.form.get('number_cabinet')
-
-    conn = sqlite3.connect('access_control.db')
-    cursor = conn.cursor()
-    cursor.execute(
-        'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
-        (username, ip_address, mac_address, department, number_cabinet))
-    conn.commit()
-
-    # with open('allowed_ips.txt', 'a') as f:
-    #     f.write(ip_address + '\n')
-    # run(['systemctl', 'restart', 'squid'])
-
-    return redirect(url_for('index'))
-
-async def main():
-    await update_database_with_devices()
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    scan_thread = threading.Thread(target=run_periodic_scan)
+    scan_thread.daemon = True
+    scan_thread.start()
     app.run(host=settings.host, port=5000, debug=True)
