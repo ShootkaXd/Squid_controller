@@ -219,4 +219,4 @@ if __name__ == '__main__':
     scan_thread = threading.Thread(target=run_periodic_scan)
     scan_thread.daemon = True
     scan_thread.start()
-    app.run(host=settings.host, port=5000, debug=True)
+    app.run(host=settings.host, port=5000)
