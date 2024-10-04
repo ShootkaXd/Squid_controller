@@ -73,8 +73,7 @@ async def update_database_with_devices():
                         )
                     else:
                         await cursor.execute(
-                            'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet, '
-                            'hostname, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?)',
+                            'INSERT INTO users (ip_address, mac_address, hostname, last_seen, username, department, number_cabinet) VALUES (?, ?, ?, ?, ?, ?, ?)',
                             (username, ip_address, mac_address, department, number_cabinet, hostname, last_seen))
                 await conn.commit()
     except Exception as e:
