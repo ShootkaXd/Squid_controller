@@ -104,7 +104,7 @@ def users():
     users = cursor.fetchall()
     conn.close()
 
-    return render_template('users.html', users=users)
+    return render_template('index.html', users=users)
 
 @app.template_filter('format_uptime')
 def format_uptime(uptime):

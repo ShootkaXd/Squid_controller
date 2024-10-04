@@ -1,81 +1,70 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Управление доступом в Squid</title>
-    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <title>Пользователи с разрешенным доступом</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/search.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/checkbox.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">
-            <img src="{{ url_for('static', filename='images/icon.png') }}" alt="Squid Access Management" height="150">
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#" data-url="/users">Главная</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="#" data-url="/blocked_sites">Заблокированные сайты (в разработке)</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="#" data-url="/monitoring">Мониторинг (в разработке)</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="#" data-url="/system">О системе (в разработке)</a>
-                </li>
-            </ul>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-md-12">
+            <div id="searchContainer" class="mb-4">
+                <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя и IP-адресу">
+            </div>
         </div>
-    </nav>
-
-    <div id="content" class="container">
     </div>
 
-    <!-- Футер -->
-    <footer class="footer bg-light text-center mt-5 py-3">
-        <div class="container">
-            <span class="text-muted">Версия: {{ version }} | Авторы: Shootka, Lermontov</span>
+    <div class="row">
+        <div class="col-md-12">
+            <table id="usersTable" class="table table-bordered">
+                <thead class="thead-light">
+                    <tr>
+                        <th>IP-адрес</th>
+                        <th>MAC-адрес</th>
+                        <th>Сетевое имя</th>
+                        <th>Последнее время в сети</th>
+                        <th>Имя пользователя</th>
+                        <th>Отдел</th>
+                        <th>Номер кабинета</th>
+                        <th>Статус</th>
+                        <th>Доступ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user[0] }}</td>
+                            <td>{{ user[1] }}</td>
+                            <td>{{ user[2] }}</td>
+                            <td>{{ user[3] }}</td>
+                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'username')">{{ user[4] }}</td>
+                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'department')">{{ user[5] }}</td>
+                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'number_cabinet')">{{ user[6] }}</td>
+                            <td id="status_{{ user[1] }}" style="background-color: {{ 'green' if user[5] else 'red' }}">
+                                {{ "Разрешен" if user[7] is defined and user[7] else "Запрещен" }}
+                            </td>
+                            <td>
+                                <button onclick="toggleAccess('{{ user[1] }}', {{ user[5] }})" class="btn btn-action btn-sm {{ 'btn-danger' if user[5] else 'btn-success' }}">
+                                    {{ "Запретить" if user[7] else "Разрешить" }} доступ
+                                </button>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
-    </footer>
+    </div>
+</div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
-    <script>
-        $(document).ready(function() {
-            // Функция для загрузки контента через AJAX
-            function loadContent(url) {
-                $.ajax({
-                    url: url,
-                    method: 'GET',
-                    success: function(data) {
-                        $('#content').html(data);
-                    },
-                    error: function() {
-                        $('#content').html('<p>Ошибка загрузки данных</p>');
-                    }
-                });
-            }
-
-            // При нажатии на элемент навигации, загружаем контент
-            $('a.nav-link').on('click', function(e) {
-                e.preventDefault(); // Отключаем стандартный переход
-                var url = $(this).data('url'); // Получаем URL из атрибута data-url
-                loadContent(url); // Загружаем контент
-            });
-
-            // Загрузка страницы пользователей по умолчанию
-            loadContent('/users');
-        });
-    </script>
-
+<script src="{{ url_for('static', filename='js/users.js') }}"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
