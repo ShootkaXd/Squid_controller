@@ -14,8 +14,6 @@
 <div class="container-fluid">
     <div class="row">
         <div class="col-md-12">
-            <h1 class="mt-4">Пользователи с разрешенным доступом</h1>
-
             <div id="searchContainer" class="mb-4">
                 <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя и IP-адресу">
                 <button id="searchButton" onclick="filterUsers()" class="btn btn-primary">Искать</button>
@@ -25,26 +23,6 @@
 
     <div class="row">
         <div class="col-md-12">
-            <h2>Новые пользователи</h2>
-            <table id="new_users" class="table table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                        <th>IP-адрес</th>
-                        <th>MAC-адрес</th>
-                        <th>Имя пользователя</th>
-                        <th>Отдел</th>
-                        <th>Номер кабинета</th>
-                        <th>Статус</th>
-                        <th>Доступ</th>
-                    </tr>
-                </thead>
-            </table>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-md-12">
-            <h2>Пользователи с разрешенным доступом</h2>
             <table id="usersTable" class="table table-bordered">
                 <thead class="thead-light">
                     <tr>
