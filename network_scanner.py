@@ -46,7 +46,7 @@ async def scan_local_network(ip_range):
 
 async def update_database_with_devices():
     try:
-        local_network_ip = setings.scan_network
+        local_network_ip = settings.scan_network
         ip_range = [str(ip) for ip in ipaddress.IPv4Network(local_network_ip)]
         devices = await scan_local_network(ip_range)
 
