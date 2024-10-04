@@ -3,19 +3,28 @@ import aiosqlite
 from scapy.layers.l2 import ARP, Ether, srp
 import socket
 from datetime import datetime
+import asyncio
 
-import setings
+import settings
 
 
-async def scan_local_network(ip):
-    try:
-        arp_request = ARP(pdst=ip)
-        ether_frame = Ether(dst="ff:ff:ff:ff:ff:ff")
+async def send_arp_request(ip):
+    arp_request = ARP(pdst=ip)
+    ether_frame = Ether(dst="ff:ff:ff:ff:ff:ff")
+    packet = ether_frame / arp_request
+    return srp(packet, timeout=1, verbose=0)[0]  # Уменьшено время ожидания
 
-        packet = ether_frame / arp_request
-        result = srp(packet, timeout=10, verbose=0)[0]
 
-        devices = []
+async def scan_local_network(ip_range):
+    devices = []
+    tasks = []
+
+    for ip in ip_range:
+        tasks.append(send_arp_request(ip))
+
+    results = await asyncio.gather(*tasks)
+
+    for result in results:
         for sent, received in result:
             ip_address = received.psrc
             mac_address = received.hwsrc.upper()
@@ -32,15 +41,14 @@ async def scan_local_network(ip):
                 'last_seen': datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             })
 
-        return devices
-    except Exception as e:
-        print(f"Error during network scan: {e}")
+    return devices
 
 
 async def update_database_with_devices():
     try:
         local_network_ip = setings.scan_network
-        devices = await scan_local_network(local_network_ip)
+        ip_range = [str(ip) for ip in ipaddress.IPv4Network(local_network_ip)]
+        devices = await scan_local_network(ip_range)
 
         devices.sort(key=lambda x: ipaddress.IPv4Address(x['ip']))
 
@@ -68,7 +76,7 @@ async def update_database_with_devices():
                             'INSERT INTO users (username, ip_address, mac_address, department, number_cabinet, '
                             'hostname, last_seen) VALUES (?, ?, ?, ?, ?, ?, ?)',
                             (username, ip_address, mac_address, department, number_cabinet, hostname, last_seen))
-                    await conn.commit()
+                await conn.commit()
     except Exception as e:
         print(f"Error during database update: {e}")
 
@@ -78,7 +86,7 @@ def get_mac_address(ip_address):
     ether = Ether(dst="ff:ff:ff:ff:ff:ff")
     packet = ether / arp
 
-    result = srp(packet, timeout=3, verbose=0)[0]
+    result = srp(packet, timeout=1, verbose=0)[0]  # Уменьшено время ожидания
 
     if result:
         mac_address = result[0][1].hwsrc.upper()

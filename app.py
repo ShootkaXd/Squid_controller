@@ -17,7 +17,7 @@ from database import User, db
 from forms import LoginForm
 from network_scanner import update_database_with_devices, scan_local_network, get_mac_address
 from datetime import timedelta
-import setings
+import settings
 from flask_sslify import SSLify
 from wtforms import SelectField
 from flask_wtf import FlaskForm
@@ -26,28 +26,11 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 app.secret_key = os.urandom(24)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///access_control.db'
-admin = Admin(app, name='Admin Panel', template_mode='bootstrap3')
-admin.add_view(ModelView(User, db.session))
-
-
-# app.config['SESSION_COOKIE_SECURE'] = True  # Устанавливает Secure cookie
-# app.config['SESSION_COOKIE_HTTPONLY'] = True  # Устанавливает HttpOnly cookie
-# app.config['SESSION_TYPE'] = 'filesystem'  # Выберите тип хранения, например, файловая система
-# app.config['SESSION_PERMANENT'] = False  # Сделайте сессии временными
-# app.config['SESSION_USE_SIGNER'] = True  # Используйте подписанные сессии
-# app.config['SESSION_KEY_PREFIX'] = 'niiks_'  # Префикс для ключей сессии
-# app.config['SESSION_COOKIE_SAMESITE'] = 'None'
-# sslify = SSLify(app)
-
-async def main():
-    await update_database_with_devices()
-
 
 local_network_ip = socket.gethostbyname(socket.gethostname())
 devices = scan_local_network(local_network_ip)
 
 login_manager = LoginManager(app)
-asyncio.run(main())
 
 users_db = {'test': {'password_hash': generate_password_hash('test', method='pbkdf2:sha256', salt_length=8)}}
 
@@ -86,39 +69,10 @@ def login():
     return render_template('login.html', form=form)
 
 
-@socketio.on('connect')
-def handle_connect():
-    print('Client connected')
-    emit_system_info()
 
 
 
 ####################### Системный монитор ##########################
-
-def emit_system_info():
-    cpu_percent = psutil.cpu_percent()
-    memory_info = psutil.virtual_memory()
-    disk_info = psutil.disk_usage('/')
-
-    network_info = psutil.net_io_counters(pernic=True)
-    network_traffic = network_info[list(network_info.keys())[0]]
-    sent_bytes, received_bytes = network_traffic.bytes_sent, network_traffic.bytes_recv
-
-    system_info = {
-        'cpu_percent': cpu_percent,
-        'memory_percent': memory_info.percent,
-        'disk_percent': disk_info.percent,
-        'sent_bytes': sent_bytes,
-        'received_bytes': received_bytes
-    }
-
-    socketio.emit('system_info', system_info)
-
-
-@app.route('/monitoring.css')
-def monitoring():
-    return render_template('monitoring.css.html')
-
 
 @app.route('/index')
 @login_required
@@ -129,38 +83,6 @@ def index():
     users = cursor.fetchall()
     conn.close()
     return render_template('index.html', users=users)
-
-
-@app.route('/block_site', methods=['POST'])
-@login_required
-def block_site():
-    site_url = request.form.get('site_url')
-
-    conn = sqlite3.connect('access_control.db')
-    cursor = conn.cursor()
-    cursor.execute('INSERT INTO blocked_sites (site_url) VALUES (?)', (site_url,))
-    conn.commit()
-    conn.close()
-
-    blocked_sites = fetch_blocked_sites_from_db()
-
-    # update_squid_config([], blocked_sites)
-    # restart_squid()
-
-    return redirect(url_for('blocked_sites'))
-
-
-@app.route('/blocked_sites')
-@login_required
-def blocked_sites():
-    conn = sqlite3.connect('access_control.db')
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM blocked_sites')
-    blocked_sites = cursor.fetchall()
-    conn.close()
-
-    return render_template('blocked_sites.html', blocked_sites=blocked_sites)
-
 
 def fetch_blocked_sites_from_db():
     try:
@@ -420,55 +342,9 @@ def allow_access():
 
     return redirect(url_for('index'))
 
-
-@app.route('/system')
-@login_required
-def system():
-    cpu_percent = psutil.cpu_percent()
-    memory_info = psutil.virtual_memory()
-    disk_info = psutil.disk_usage('/')
-
-    network_info = psutil.net_io_counters(pernic=True)
-    network_traffic = network_info[list(network_info.keys())[0]]
-    sent_bytes, received_bytes = network_traffic.bytes_sent, network_traffic.bytes_recv
-
-    system_info = {
-        'cpu_percent': cpu_percent,
-        'memory_percent': memory_info.percent,
-        'disk_percent': disk_info.percent,
-        'sent_bytes': sent_bytes,
-        'received_bytes': received_bytes
-    }
-
-    return render_template('system.html', system_info=system_info)
-
-
-@socketio.on('connect')
-def handle_connect():
-    print('Client connected')
-    emit_system_info()
-    emit_system_info_to_client()
-
-
-def emit_system_info_to_client():
-    cpu_percent = psutil.cpu_percent()
-    memory_info = psutil.virtual_memory()
-    disk_info = psutil.disk_usage('/')
-
-    network_info = psutil.net_io_counters(pernic=True)
-    network_traffic = network_info[list(network_info.keys())[0]]
-    sent_bytes, received_bytes = network_traffic.bytes_sent, network_traffic.bytes_recv
-
-    system_info = {
-        'cpu_percent': cpu_percent,
-        'memory_percent': memory_info.percent,
-        'disk_percent': disk_info.percent,
-        'sent_bytes': sent_bytes,
-        'received_bytes': received_bytes
-    }
-
-    socketio.emit('system_info_to_client', system_info)
-
+async def main():
+    await update_database_with_devices()
 
 if __name__ == '__main__':
-    app.run(host=setings.host, port=5000, debug=True)
+    asyncio.run(main())
+    app.run(host=settings.host, port=5000, debug=True)

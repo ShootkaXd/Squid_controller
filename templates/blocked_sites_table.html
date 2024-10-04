@@ -1,8 +1,0 @@
-<tbody id="blockedSitesList">
-    {% for site in blocked_sites %}
-    <tr>
-        <td>{{ site[1] }}</td>
-        <td><a href="#" class="remove-link" data-id="{{ site[0] }}">Удалить</a></td>
-    </tr>
-    {% endfor %}
-</tbody>
