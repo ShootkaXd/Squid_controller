@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление доступом в Squid</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/search.css') }}">
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/checkbox.css') }}">
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/footer.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 <body>
-    
+
     <nav class="navbar navbar-expand-lg navbar-light bg-light">
         <a class="navbar-brand" href="#">
             <img src="{{ url_for('static', filename='images/icon.png') }}" alt="Squid Access Management" height="150">
@@ -37,60 +37,73 @@
         </div>
     </nav>
 
-<div class="container-fluid">
-    <div class="row">
-        <div class="col-md-12">
-            <div id="searchContainer" class="mb-4">
-                <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя и IP-адресу">
+    <!-- Контент страницы -->
+    <div class="container-fluid content">
+        <div class="row">
+            <div class="col-md-12">
+                <div id="searchContainer" class="mb-4">
+                    <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя и IP-адресу">
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-md-12">
+                <table id="usersTable" class="table table-bordered">
+                    <thead class="thead-light">
+                        <tr>
+                            <th>Статус сети</th>
+                            <th>IP-адрес</th>
+                            <th>MAC-адрес</th>
+                            <th>Сетевое имя</th>
+                            <th>Последнее время в сети</th>
+                            <th>Имя пользователя</th>
+                            <th>Отдел</th>
+                            <th>Номер кабинета</th>
+                            <th>Доступ в интернет</th>
+                            <th>Доступ</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                            <tr>
+                                <td>
+                                    <span class="status-circle {{ 'status-online' if user.is_online else 'status-offline' }}"></span>
+                                </td>
+                                <td>{{ user.ip }}</td>
+                                <td>{{ user.mac }}</td>
+                                <td>{{ user.hostname }}</td>
+                                <td>{{ user.last_seen }}</td>
+                                <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'username')">{{ user.username }}</td>
+                                <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'department')">{{ user.department }}</td>
+                                <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'number_cabinet')">{{ user.number_cabinet }}</td>
+                                <td id="status_{{ user.mac }}" style="background-color: {{ 'green' if user.access_allowed else 'red' }}">
+                                    {{ "Разрешен" if user.access_allowed else "Запрещен" }}
+                                </td>
+                                <td>
+                                    <button onclick="toggleAccess('{{ user.mac }}', {{ 'true' if user.access_allowed else 'false' }})" class="btn btn-action btn-sm {{ 'btn-danger' if user.access_allowed else 'btn-success' }}">
+                                        {{ "Запретить" if user.access_allowed else "Разрешить" }} доступ
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-12">
-            <table id="usersTable" class="table table-bordered">
-                <thead class="thead-light">
-                    <tr>
-                        <th>IP-адрес</th>
-                        <th>MAC-адрес</th>
-                        <th>Сетевое имя</th>
-                        <th>Последнее время в сети</th>
-                        <th>Имя пользователя</th>
-                        <th>Отдел</th>
-                        <th>Номер кабинета</th>
-                        <th>Статус</th>
-                        <th>Доступ</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for user in users %}
-                        <tr>
-                            <td>{{ user[0] }}</td>
-                            <td>{{ user[1] }}</td>
-                            <td>{{ user[2] }}</td>
-                            <td>{{ user[3] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'username')">{{ user[4] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'department')">{{ user[5] }}</td>
-                            <td data-mac="{{ user[1] }}" contenteditable="true" onblur="saveChanges(this, '{{ user[1] }}', 'number_cabinet')">{{ user[6] }}</td>
-                            <td id="status_{{ user[1] }}" style="background-color: {{ 'green' if user[5] else 'red' }}">
-                                {{ "Разрешен" if user[7] is defined and user[7] else "Запрещен" }}
-                            </td>
-                            <td>
-                                <button onclick="toggleAccess('{{ user[1] }}', {{ user[5] }})" class="btn btn-action btn-sm {{ 'btn-danger' if user[5] else 'btn-success' }}">
-                                    {{ "Запретить" if user[7] else "Разрешить" }} доступ
-                                </button>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+    <!-- Футер -->
+    <footer class="footer">
+        <div class="container">
+            <span class="text-muted">© 2024 Управление доступом в Squid. Все права защищены.</span>
+            <span class="text-muted">Версия: {{ version }} | Авторы: Shootka, Lermontov</span>
         </div>
-    </div>
-</div>
+    </footer>
 
-<script src="{{ url_for('static', filename='js/users.js') }}"></script>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="{{ url_for('static', filename='js/users.js') }}"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>

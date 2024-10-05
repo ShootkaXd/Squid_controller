@@ -8,3 +8,4 @@ access_control.db
 /.venv
 /static/images
 /__pycache__
+settings.py

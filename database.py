@@ -10,8 +10,9 @@ class User(db.Model, UserMixin):
     def __init__(self, user_id):
         self.id = user_id
 
+    status = db.Column(db.String(20))
     id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(15))
+    ip_address = db.Column(db.String(15), unique=True)  # Добавляем ограничение уникальности
     mac_address = db.Column(db.String(17), unique=True)
     hostname = db.Column(db.String(255))
     last_seen = db.Column(db.String(255))
@@ -26,6 +27,7 @@ cursor = conn.cursor()
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        status TEXT DEFAULT "offline",
         ip_address TEXT,
         mac_address TEXT,
         hostname TEXT,

@@ -6,3 +6,17 @@
 .status-forbidden {
     background-color: red;
 }
+
+.status-circle {
+    height: 15px;
+    width: 15px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 5px;
+}
+.status-online {
+    background-color: green;
+}
+.status-offline {
+    background-color: gray;
+}
