@@ -1,0 +1,131 @@
+<!-- login.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .login-container {
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.1);
+            padding: 40px;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            height: 45px;
+            border-radius: 25px;
+            padding-left: 45px;
+            border: 1px solid #ddd;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .form-group i {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+        }
+
+        .form-group {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .btn-primary {
+            width: 100%;
+            height: 45px;
+            border-radius: 25px;
+            background-color: #007bff;
+            border: none;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background-color: #0056b3;
+        }
+
+        .forgot-password {
+            text-align: right;
+            display: block;
+            margin-top: 10px;
+            color: #007bff;
+        }
+
+        .forgot-password:hover {
+            text-decoration: underline;
+        }
+
+        .remember-me {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="login-container">
+        <h1>Вход</h1>
+        {% with messages = get_flashed_messages() %}
+            {% if messages %}
+                <div class="alert alert-danger" role="alert">
+                    <ul class="mb-0">
+                        {% for message in messages %}
+                            <li>{{ message }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            {% endif %}
+        {% endwith %}
+        <form method="post" action="/">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                <i class="fas fa-user"></i>
+                {{ form.user_id(placeholder="Логин", class="form-control", pattern="^[^\\s]+$") }}
+            </div>
+
+            <div class="form-group">
+                <i class="fas fa-lock"></i>
+                {{ form.password(placeholder="Пароль", class="form-control", pattern="^[^\\s]+$") }}
+            </div>
+
+            <div class="remember-me">
+                <div class="form-check">
+                    <input type="checkbox" class="form-check-input" id="rememberMe" name="remember">
+                    <label class="form-check-label" for="rememberMe">Запомнить меня</label>
+                </div>
+                <a href="#" class="forgot-password">Забыли пароль?</a>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Войти</button>
+        </form>
+    </div>
+
+</body>
+</html>
