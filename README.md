@@ -27,7 +27,6 @@ To run the program in your local environment
     7. pip install flask-socketio
     8. pip install Flask-Login
     9. pip install Flask-WTF
-    9. set values app.ru(host='your_ip_address', port=your_port)
     10. pip install aiosqlite
     11. pip install scapy
     12. pip install psutil
@@ -84,7 +83,6 @@ To run the program in your local environment
     7. pip install flask-socketio
     8. pip install Flask-Login
     9. pip install Flask-WTF
-    9. set values app.ru(host='your_ip_address', port=your_port)
     10. pip install aiosqlite
     11. pip install scapy
     12. pip install psutil
