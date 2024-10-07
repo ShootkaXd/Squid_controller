@@ -1,0 +1,11 @@
+{
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "driver": "SQLite",
+            "database": "${workspaceFolder:Squid_controller}/access_control.db",
+            "name": "Squid_controllers"
+        }
+    ],
+    "sqltools.useNodeRuntime": true
+}

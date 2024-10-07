@@ -207,12 +207,11 @@ def run_periodic_scan():
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     while True:
-        loop.run_until_complete(update_database_with_devices())
-        loop.run_until_complete(asyncio.sleep(60))  # Задержка 60 секунд перед следующим сканированием
+        loop.run_until_complete(update_database_with_devices()) # Задержка 0 секунд перед следующим сканированием  
 
 
 if __name__ == '__main__':
     scan_thread = threading.Thread(target=run_periodic_scan)
     scan_thread.daemon = True
     scan_thread.start()
-    app.run(host=settings.host, port=5000, debug=True)
+    app.run(host=settings.host, port=5000)
