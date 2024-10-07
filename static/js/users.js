@@ -46,6 +46,7 @@ function updateNewUsersTable(newUsers) {
         const row = document.createElement('tr');
         row.dataset.mac = newUser.mac;
         row.innerHTML = `
+            <td>${newUser.is_online}</td>
             <td>${newUser.ip}</td>
             <td>${newUser.mac}</td>
             <td>${newUser.hostname}</td>
@@ -69,13 +70,14 @@ async function saveChanges() {
     rows.forEach(row => {
         const cells = row.querySelectorAll('td');
         const userData = {
-            ip: cells[0].textContent,
-            mac: cells[1].textContent,
-            hostname: cells[2].textContent,
-            last_seen: cells[3].textContent,
-            username: cells[4].textContent,
-            department: cells[5].textContent,
-            cabinet: cells[6].textContent,
+            is_online: cells[0].textContent,
+            ip: cells[1].textContent,
+            mac: cells[2].textContent,
+            hostname: cells[3].textContent,
+            last_seen: cells[4].textContent,
+            username: cells[5].textContent,
+            department: cells[6].textContent,
+            cabinet: cells[7].textContent,
         };
         usersData.push(userData);
     });

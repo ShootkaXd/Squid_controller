@@ -60,7 +60,7 @@ def login():
 
     return render_template('login.html', form=form)
 
-@app.route('/users')
+@app.route('/index')
 @login_required
 def users():
     try:
@@ -85,6 +85,7 @@ def users():
                 is_online = False  # Если парсинг не удался, считаем оффлайн
 
             users.append({
+                'is_online': is_online,
                 'ip': row['ip_address'],
                 'mac': row['mac_address'],
                 'hostname': row['hostname'],
@@ -92,8 +93,8 @@ def users():
                 'username': row['username'],
                 'department': row['department'],
                 'number_cabinet': row['number_cabinet'],
-                'access_allowed': row['access_allowed'],
-                'is_online': is_online
+                'access_allowed': row['access_allowed']
+                
             })
 
         return render_template('index.html', users=users)
