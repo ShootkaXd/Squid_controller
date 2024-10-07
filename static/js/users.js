@@ -4,9 +4,9 @@ function filterUsers() {
     const table = document.getElementById("usersTable");
     const tr = table.getElementsByTagName("tr");
 
-    for (let i = 1; i < tr.length; i++) {
-        const tdUsername = tr[i].getElementsByTagName("td")[2]; // Username column
-        const tdIP = tr[i].getElementsByTagName("td")[0]; // IP column
+    for (let i = 1; i < tr.length; i++) { // Начинаем с 1, чтобы пропустить заголовок
+        const tdUsername = tr[i].getElementsByTagName("td")[5]; // Имя пользователя
+        const tdIP = tr[i].getElementsByTagName("td")[1]; // IP-адрес
 
         if (tdUsername && tdIP) {
             const txtValueUsername = tdUsername.textContent || tdUsername.innerText;
@@ -62,44 +62,47 @@ function updateNewUsersTable(newUsers) {
     });
 }
 
-async function saveChanges() {
-    const usersTable = document.getElementById('usersTable');
-    const rows = usersTable.querySelectorAll('tbody tr');
+//async function saveChanges() {
+//    const usersTable = document.getElementById('usersTable');
+//    const rows = usersTable.querySelectorAll('tbody tr');
+//
+//    const usersData = [];
+//    rows.forEach(row => {
+//        const cells = row.querySelectorAll('td');
+//        const userData = {
+//            is_online: cells[0].textContent,
+//            ip: cells[1].textContent,
+//            mac: cells[2].textContent,
+//            hostname: cells[3].textContent,
+//            last_seen: cells[4].textContent,
+//            username: cells[5].textContent,
+//            department: cells[6].textContent,
+//            cabinet: cells[7].textContent,
+//        };
+//        usersData.push(userData);
+//    });
+//
+//    const response = await fetch('/update_user', {
+//        method: 'POST',
+//        headers: {
+//            'Content-Type': 'application/json',
+//        },
+//        body: JSON.stringify({
+//            users: usersData,
+//        }),
+//    });
+//
+//    if (response.ok) {
+//        console.log('Changes saved successfully!');
+//    } else {
+//        console.error('Failed to save changes.');
+//    }
+//}
 
-    const usersData = [];
-    rows.forEach(row => {
-        const cells = row.querySelectorAll('td');
-        const userData = {
-            is_online: cells[0].textContent,
-            ip: cells[1].textContent,
-            mac: cells[2].textContent,
-            hostname: cells[3].textContent,
-            last_seen: cells[4].textContent,
-            username: cells[5].textContent,
-            department: cells[6].textContent,
-            cabinet: cells[7].textContent,
-        };
-        usersData.push(userData);
-    });
+function toggleAccess(button, macAddress) {
+    // Получаем текущий статус из data-атрибута
+    var currentStatus = button.getAttribute('data-status') === 'true';
 
-    const response = await fetch('/update_user', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            users: usersData,
-        }),
-    });
-
-    if (response.ok) {
-        console.log('Changes saved successfully!');
-    } else {
-        console.error('Failed to save changes.');
-    }
-}
-
-function toggleAccess(macAddress, currentStatus) {
     $.ajax({
         type: 'POST',
         url: '/toggle_access',
@@ -109,37 +112,42 @@ function toggleAccess(macAddress, currentStatus) {
         },
         success: function (response) {
             var newStatus = response.newStatus;
-            var statusElement = document.getElementById('status_' + macAddress);
-            var buttonElement = statusElement.nextElementSibling.querySelector('button');
 
-            statusElement.innerText = newStatus ? 'Разрешен' : 'Запрещен';
+            // Обновляем текст кнопки
+            button.innerText = newStatus ? 'доступ Запрещён' : 'доступ Разрешён';
 
-            buttonElement.innerText = newStatus ? 'Запретить доступ' : 'Разрешить доступ';
+            // Обновляем класс кнопки
+            if (newStatus) {
+                button.classList.remove('btn-success');
+                button.classList.add('btn-secondary');
+            } else {
+                button.classList.remove('btn-secondary');
+                button.classList.add('btn-success');
+            }
 
-            statusElement.style.backgroundColor = newStatus ? 'green' : 'red';
-            buttonElement.className = 'btn btn-action btn-sm ' + (newStatus ? 'btn-danger' : 'btn-success');
+            // Обновляем data-атрибут с новым статусом
+            button.setAttribute('data-status', newStatus);
         },
         error: function (error) {
             console.error('Ошибка при обновлении статуса пользователя:', error);
         }
     });
 }
-
-function setInitialAccessStatus() {
-    const users = document.querySelectorAll('#usersTable tbody tr');
-    users.forEach(userRow => {
-        const macAddress = userRow.querySelector('td').innerText;
-        const statusElement = userRow.querySelector(`#status_${macAddress}`);
-        const buttonElement = userRow.querySelector('button');
-        const currentStatus = statusElement.innerText === 'Разрешен';
-
-        statusElement.innerText = currentStatus ? 'Разрешен' : 'Запрещен';
-
-        buttonElement.innerText = currentStatus ? 'Запретить доступ' : 'Разрешить доступ';
-
-        statusElement.style.backgroundColor = currentStatus ? 'green' : 'red';
-    });
-}
+//function setInitialAccessStatus() {
+//    const users = document.querySelectorAll('#usersTable tbody tr');
+//    users.forEach(userRow => {
+//        const macAddress = userRow.querySelector('td').innerText;
+//        const statusElement = userRow.querySelector(`#status_${macAddress}`);
+//        const buttonElement = userRow.querySelector('button');
+//        const currentStatus = statusElement.innerText === 'Разрешен';
+//
+//        statusElement.innerText = currentStatus ? 'Разрешен' : 'Запрещен';
+//
+//        buttonElement.innerText = currentStatus ? 'Запретить доступ' : 'Разрешить доступ';
+//
+//        statusElement.style.backgroundColor = currentStatus ? 'green' : 'red';
+//    });
+//}
 
 window.addEventListener('load', () => {
     fetchNewUsers();

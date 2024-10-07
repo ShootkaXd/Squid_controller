@@ -78,8 +78,11 @@
                                 <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'department')">{{ user.department }}</td>
                                 <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'number_cabinet')">{{ user.number_cabinet }}</td>
                                 <td>
-                                    <button onclick="toggleAccess('{{ user.mac }}', {{ 'true' if user.access_allowed else 'false' }})" class="btn btn-action btn-sm {{ 'btn-danger' if user.access_allowed else 'btn-success' }}">
-                                        доступ {{ "Запрещён" if user.access_allowed else "Разрешён" }} 
+                                    <button
+                                        onclick="toggleAccess(this, '{{ user.mac }}')"
+                                        class="btn btn-action btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-success' }}"
+                                        data-status="{{ 'true' if user.access_allowed else 'false' }}">
+                                        доступ {{ "Запрещён" if user.access_allowed else "Разрешён" }}
                                     </button>
                                 </td>
                             </tr>

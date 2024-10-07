@@ -192,7 +192,7 @@ def toggle_access():
         current_status = not bool(current_status[0])
         cursor.execute('UPDATE users SET access_allowed = ? WHERE mac_address = ?', (current_status, mac_address))
         conn.commit()
-        print(f"Rows affected: {cursor.rowcount}")
+        print(f"New status {cursor.rowcount}")
     else:
         current_status = True
         cursor.execute('INSERT INTO users (mac_address, access_allowed) VALUES (?, ?)', (mac_address, current_status))
