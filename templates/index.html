@@ -56,19 +56,19 @@
                             <th>IP-адрес</th>
                             <th>MAC-адрес</th>
                             <th>Сетевое имя</th>
-                            <th>Последнее время в сети</th>
+                            <th>Последний раз в сети</th>
                             <th>Имя пользователя</th>
                             <th>Отдел</th>
                             <th>Номер кабинета</th>
-                            <th>Доступ в интернет</th>
                             <th>Доступ</th>
                         </tr>
                     </thead>
                     <tbody>
                         {% for user in users %}
-                            <tr>
+                            <tr class="Color-string {{'color-online' if user.is_online else 'color-offline'}}">
                                 <td>
-                                    <span class="status-circle {{ 'status-online' if user.is_online else 'status-offline' }}"></span>
+                                    <span class="status-circle {{'status-online'  if user.is_online else 'status-offline'}}"></span>
+                                    {{"В" if user.is_online else "Не в"}} сети
                                 </td>
                                 <td>{{ user.ip }}</td>
                                 <td>{{ user.mac }}</td>
@@ -77,12 +77,9 @@
                                 <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'username')">{{ user.username }}</td>
                                 <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'department')">{{ user.department }}</td>
                                 <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'number_cabinet')">{{ user.number_cabinet }}</td>
-                                <td id="status_{{ user.mac }}" style="background-color: {{ 'green' if user.access_allowed else 'red' }}">
-                                    {{ "Разрешен" if user.access_allowed else "Запрещен" }}
-                                </td>
                                 <td>
                                     <button onclick="toggleAccess('{{ user.mac }}', {{ 'true' if user.access_allowed else 'false' }})" class="btn btn-action btn-sm {{ 'btn-danger' if user.access_allowed else 'btn-success' }}">
-                                        {{ "Запретить" if user.access_allowed else "Разрешить" }} доступ
+                                        доступ {{ "Запрещён" if user.access_allowed else "Разрешён" }} 
                                     </button>
                                 </td>
                             </tr>
@@ -96,8 +93,8 @@
     <!-- Футер -->
     <footer class="footer">
         <div class="container">
-            <span class="text-muted">© 2024 Управление доступом в Squid. Все права защищены.</span>
-            <span class="text-muted">Версия: {{ version }} | Авторы: Shootka, Lermontov</span>
+            <span class="text-footer">© 2024 Управление доступом в Squid. Все права защищены.</span>
+            <span class="text-footer">Версия: {{ version }} | Авторы: Shootka, Lermontov</span>
         </div>
     </footer>
 
