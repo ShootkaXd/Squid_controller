@@ -61,7 +61,7 @@ def login():
     return render_template('login.html', form=form)
 
 @app.route('/index')
-@login_required
+#@login_required
 def users():
     try:
         conn = sqlite3.connect('access_control.db')
@@ -115,7 +115,7 @@ app.jinja_env.filters['format_uptime'] = format_uptime
 
 
 @app.route('/update_user', methods=['POST'])
-@login_required
+#@login_required
 def update_user():
     try:
         data = request.get_json()
@@ -153,7 +153,7 @@ def update_user():
 
 
 @app.route('/confirm_access', methods=['POST'])
-@login_required
+#@login_required
 def confirm_access():
     try:
         conn = sqlite3.connect('access_control.db')
@@ -179,7 +179,7 @@ def confirm_access():
         return jsonify({'status': 'error', 'message': 'Failed to confirm access'})
 
 @app.route('/toggle_access', methods=['POST'])
-@login_required
+#@login_required
 def toggle_access():
     mac_address = request.form.get('macAddress')
 

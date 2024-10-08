@@ -39,7 +39,7 @@
 
     <!-- Контент страницы -->
     <div class="container-fluid content">
-        <div class="row">
+        <div>
             <div class="col-md-12">
                 <div id="searchContainer" class="mb-4">
                     <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя и IP-адресу">
@@ -47,10 +47,9 @@
             </div>
         </div>
 
-        <div class="row">
+        <div class="">
             <div class="col-md-12">
                 <table id="usersTable" class="table table-bordered">
-                    <thead class="thead-light">
                         <tr>
                             <th>Статус сети</th>
                             <th>IP-адрес</th>
@@ -62,7 +61,6 @@
                             <th>Номер кабинета</th>
                             <th>Доступ</th>
                         </tr>
-                    </thead>
                     <tbody>
                         {% for user in users %}
                             <tr class="Color-string {{'color-online' if user.is_online else 'color-offline'}}">
@@ -80,7 +78,7 @@
                                 <td>
                                     <button
                                         onclick="toggleAccess(this, '{{ user.mac }}')"
-                                        class="btn btn-action btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-success' }}"
+                                        class="btn btn-action btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-primary' }}"
                                         data-status="{{ 'true' if user.access_allowed else 'false' }}">
                                         доступ {{ "Запрещён" if user.access_allowed else "Разрешён" }}
                                     </button>

@@ -7,8 +7,8 @@
     margin-right: 5px;
 }
 /* Цвета статусов */
-.status-online {background-color: rgb(46, 163, 218);}
+.status-online {background-color: #0069d9;}
 .status-offline {background-color: rgb(156, 56, 56);}
 /* Цвет строки */
 .color-online {background-color: rgb(255, 255, 255);}
-.color-offline {background-color: rgb(218, 218, 218);}
+.color-offline {background-color: rgb(252, 237, 237);}

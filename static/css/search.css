@@ -1,20 +1,10 @@
-        table {
-            border-collapse: collapse;
-            width: 100%;
-        }
-        th, td {
-            border: 1px solid black;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
         #searchContainer {
-            margin-bottom: 20px;
+            margin-top: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-left: 50px;
+            margin-right: 50px;
         }
         #searchInput {
             padding: 8px;
@@ -22,30 +12,20 @@
             border-radius: 4px;
             flex-grow: 1;
         }
-        #searchButton {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 4px;
-            cursor: pointer;
-        }
-        #newUsersTable, #usersTable {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
+
+
+        #usersTable {
+            table-layout: fixed;
         }
 
-        #newUsersTable th, #usersTable th, #newUsersTable td, #usersTable td {
+        #usersTable td {
             border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
+            padding: 5px;
+            text-align: center;
         }
 
-        #newUsersTable th, #usersTable th {
-            background-color: #f2f2f2;
-        }
-
-        #searchContainer {
-            margin-bottom: 20px;
+        #usersTable th {
+            
+            background-color: #c0c0c0;
+            text-align: center;
         }

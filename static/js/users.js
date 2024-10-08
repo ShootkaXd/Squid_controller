@@ -62,42 +62,42 @@ function updateNewUsersTable(newUsers) {
     });
 }
 
-//async function saveChanges() {
-//    const usersTable = document.getElementById('usersTable');
-//    const rows = usersTable.querySelectorAll('tbody tr');
-//
-//    const usersData = [];
-//    rows.forEach(row => {
-//        const cells = row.querySelectorAll('td');
-//        const userData = {
-//            is_online: cells[0].textContent,
-//            ip: cells[1].textContent,
-//            mac: cells[2].textContent,
-//            hostname: cells[3].textContent,
-//            last_seen: cells[4].textContent,
-//            username: cells[5].textContent,
-//            department: cells[6].textContent,
-//            cabinet: cells[7].textContent,
-//        };
-//        usersData.push(userData);
-//    });
-//
-//    const response = await fetch('/update_user', {
-//        method: 'POST',
-//        headers: {
-//            'Content-Type': 'application/json',
-//        },
-//        body: JSON.stringify({
-//            users: usersData,
-//        }),
-//    });
-//
-//    if (response.ok) {
-//        console.log('Changes saved successfully!');
-//    } else {
-//        console.error('Failed to save changes.');
-//    }
-//}
+async function saveChanges() {
+   const usersTable = document.getElementById('usersTable');
+   const rows = usersTable.querySelectorAll('tbody tr');
+
+   const usersData = [];
+   rows.forEach(row => {
+       const cells = row.querySelectorAll('td');
+       const userData = {
+           is_online: cells[0].textContent,
+           ip: cells[1].textContent,
+           mac: cells[2].textContent,
+           hostname: cells[3].textContent,
+           last_seen: cells[4].textContent,
+           username: cells[5].textContent,
+           department: cells[6].textContent,
+           cabinet: cells[7].textContent,
+       };
+       usersData.push(userData);
+   });
+
+   const response = await fetch('/update_user', {
+       method: 'POST',
+       headers: {
+           'Content-Type': 'application/json',
+       },
+       body: JSON.stringify({
+           users: usersData,
+       }),
+   });
+
+   if (response.ok) {
+       console.log('Changes saved successfully!');
+   } else {
+       console.error('Failed to save changes.');
+   }
+}
 
 function toggleAccess(button, macAddress) {
     // Получаем текущий статус из data-атрибута
@@ -118,11 +118,11 @@ function toggleAccess(button, macAddress) {
 
             // Обновляем класс кнопки
             if (newStatus) {
-                button.classList.remove('btn-success');
+                button.classList.remove('btn-primary');
                 button.classList.add('btn-secondary');
             } else {
                 button.classList.remove('btn-secondary');
-                button.classList.add('btn-success');
+                button.classList.add('btn-primary');
             }
 
             // Обновляем data-атрибут с новым статусом
