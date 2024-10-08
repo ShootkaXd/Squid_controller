@@ -1,9 +1,13 @@
-       #navBar{
-            background-color: rgb(32, 64, 128);
+       .testB{
+            color: aliceblue;
+            padding: 40px;
             font-size: 40px;
+        }
+       
+       #navBar{
+            word-wrap: break-word;
+            background-color: rgb(32, 64, 128);
             text-align: center;
-            margin-left: auto;
-            margin-right: auto;
             width: 100%;
        }
        #test{
@@ -42,16 +46,9 @@
 
         #usersTable {
             table-layout: fixed;
-        }
-
-        #usersTable td {
+            word-wrap: break-word;
+            background-color: #c0c0c0;
             border: 1px solid #ddd;
             padding: 5px;
-            text-align: center;
-        }
-
-        #usersTable th {
-            
-            background-color: #c0c0c0;
             text-align: center;
         }

@@ -12,24 +12,18 @@
 
 <nav id="navBar" class="navbar navbar-expand-sm">
     <a class="navbar-brand" href="#">
-        <img src="{{ url_for('static', filename='images/icon.png') }}" alt="Squid Access Management" height="150">
+        <img src="{{ url_for('static', filename='images/icon.png') }}" height="150">
     </a>
-    <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav">
+<div>
+    <div class="col-md-12">
             <tr>
-                <a class="nav-link" href="#" data-url="/index">Главная</a>
+                <th><a class="testB" href="#" data-url="/index">Главная</a></th>
+                <th><a class="testB" href="#" data-url="/index">Заблокированные сайты</a></th>
+                <th><a class="testB" href="#" data-url="/index">Мониторинг</a></th>
+                <th><a class="testB" href="#" data-url="/index">О системе</a></th>
             </tr>
-            <tr>
-                <a class="nav-link " href="#" data-url="/index">Заблокированные сайты</a>
-            </tr>
-            <th>
-                <a class="nav-link " href="#" data-url="/index">Мониторинг</a>
-            </th>
-            <li>
-                <a class="nav-link " href="#" data-url="/index">О системе</a>
-            </li>
-        </ul>
     </div>
+</div>
 </nav>
 
 <body id="GIGI">
@@ -76,7 +70,7 @@
                                         onclick="toggleAccess(this, '{{ user.mac }}')"
                                         class="btn btn-action btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-primary' }}"
                                         data-status="{{ 'true' if user.access_allowed else 'false' }}">
-                                        доступ {{ "Запрещён" if user.access_allowed else "Разрешён" }}
+                                        Доступ {{ "запрещён" if user.access_allowed else "разрешён" }}
                                     </button>
                                 </td>
                             </tr>
