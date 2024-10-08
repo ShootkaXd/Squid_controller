@@ -9,36 +9,32 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/footer.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
-<body>
 
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="#">
-            <img src="{{ url_for('static', filename='images/icon.png') }}" alt="Squid Access Management" height="150">
-        </a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav"
-                aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a class="nav-link" href="#" data-url="/index">Главная</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="#" data-url="/blocked_sites">Заблокированные сайты (в разработке)</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="#" data-url="/monitoring">Мониторинг (в разработке)</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link disabled" href="#" data-url="/system">О системе (в разработке)</a>
-                </li>
-            </ul>
-        </div>
-    </nav>
+<nav id="navBar" class="navbar navbar-expand-sm">
+    <a class="navbar-brand" href="#">
+        <img src="{{ url_for('static', filename='images/icon.png') }}" alt="Squid Access Management" height="150">
+    </a>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <tr>
+                <a class="nav-link" href="#" data-url="/index">Главная</a>
+            </tr>
+            <tr>
+                <a class="nav-link " href="#" data-url="/index">Заблокированные сайты</a>
+            </tr>
+            <th>
+                <a class="nav-link " href="#" data-url="/index">Мониторинг</a>
+            </th>
+            <li>
+                <a class="nav-link " href="#" data-url="/index">О системе</a>
+            </li>
+        </ul>
+    </div>
+</nav>
 
+<body id="GIGI">
     <!-- Контент страницы -->
-    <div class="container-fluid content">
+    <div id="mainContent">
         <div>
             <div class="col-md-12">
                 <div id="searchContainer" class="mb-4">
@@ -47,7 +43,7 @@
             </div>
         </div>
 
-        <div class="">
+        <div id="mainTable">
             <div class="col-md-12">
                 <table id="usersTable" class="table table-bordered">
                         <tr>

@@ -1,10 +1,32 @@
-        #searchContainer {
+       #navBar{
+            background-color: rgb(32, 64, 128);
+            font-size: 40px;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+       }
+       #test{
+            font-size: 40px;
+            border: 1px solid #ccc;
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+       }
+
+       /* #GIGI{
+       }
+       #mainContent{
+       } */
+
+       #searchContainer {
             margin-top: 30px;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-left: 50px;
-            margin-right: 50px;
+            margin-left: 80px;
+            margin-right: 80px;
         }
         #searchInput {
             padding: 8px;
@@ -13,6 +35,10 @@
             flex-grow: 1;
         }
 
+        #mainTable {
+            margin-right: 80px;
+            margin-left: 80px;
+        }
 
         #usersTable {
             table-layout: fixed;
