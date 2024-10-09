@@ -1,54 +1,29 @@
-       .testB{
-            color: aliceblue;
-            padding: 40px;
-            font-size: 40px;
-        }
-       
-       #navBar{
-            word-wrap: break-word;
-            background-color: rgb(32, 64, 128);
-            text-align: center;
-            width: 100%;
-       }
-       #test{
-            font-size: 40px;
-            border: 1px solid #ccc;
-            text-align: center;
-            margin-left: auto;
-            margin-right: auto;
-            width: 100%;
-       }
+.testB {
+    color: aliceblue;
+    font-size: 1.8rem;
+}
 
-       /* #GIGI{
-       }
-       #mainContent{
-       } */
+#navBar {
+    background-color: rgb(32, 64, 128);
+}
 
-       #searchContainer {
-            margin-top: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-left: 80px;
-            margin-right: 80px;
-        }
-        #searchInput {
-            padding: 8px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            flex-grow: 1;
-        }
+#searchContainer {
+    margin: 0 auto;
+    display: flex;
+    justify-content: center;
+}
 
-        #mainTable {
-            margin-right: 80px;
-            margin-left: 80px;
-        }
+#searchInput {
+    padding: 10px;
+    border-radius: 4px;
+    width: 100%;
+}
 
-        #usersTable {
-            table-layout: fixed;
-            word-wrap: break-word;
-            background-color: #c0c0c0;
-            border: 1px solid #ddd;
-            padding: 5px;
-            text-align: center;
-        }
+#mainTable {
+    margin-top: 20px;
+}
+
+#usersTable {
+    background-color: #f5f5f5;
+    word-wrap: break-word;
+}

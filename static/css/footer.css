@@ -1,25 +1,6 @@
-        html, body {
-            height: 100%;
-        }
-
-        body {
-            display: flex;
-            flex-direction: column;
-        }
-
-        .content {
-            flex: 1;
-        }
-
-        .footer {
-            background-color: rgb(32, 64, 128);
-            position: relative;
-            bottom: 0;
-            width: 100%;
-            text-align: center;
-            padding: 15px 0;
-        }
-
-        .text-footer{
-            color: white;
-        }
+.footer {
+    background-color: rgb(32, 64, 128);
+    color: white;
+    padding: 10px 0;
+    text-align: center;
+}

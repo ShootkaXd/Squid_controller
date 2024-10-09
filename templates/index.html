@@ -4,42 +4,36 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Управление доступом в Squid</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/search.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/checkbox.css') }}">
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/footer.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/checkbox.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 
 <nav id="navBar" class="navbar navbar-expand-sm">
     <a class="navbar-brand" href="#">
-        <img src="{{ url_for('static', filename='images/icon.png') }}" height="150">
+        <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
     </a>
-<div>
-    <div class="col-md-12">
-            <tr>
-                <th><a class="testB" href="#" data-url="/index">Главная</a></th>
-                <th><a class="testB" href="#" data-url="/index">Заблокированные сайты</a></th>
-                <th><a class="testB" href="#" data-url="/index">Мониторинг</a></th>
-                <th><a class="testB" href="#" data-url="/index">О системе</a></th>
-            </tr>
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/index">Главная</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/blocked-sites">Заблокированные сайты</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/monitoring">Мониторинг</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/about">О системе</a></li>
+        </ul>
     </div>
-</div>
 </nav>
 
 <body id="GIGI">
-    <!-- Контент страницы -->
     <div id="mainContent">
-        <div>
-            <div class="col-md-12">
-                <div id="searchContainer" class="mb-4">
-                    <input type="text" id="searchInput" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя или IP-адресу">
-                </div>
+        <div class="container mt-4">
+            <div id="searchContainer" class="mb-4">
+                <input type="text" id="searchInput" class="form-control" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя или IP-адресу">
             </div>
-        </div>
 
-        <div id="mainTable">
-            <div class="col-md-12">
+            <div id="mainTable" class="table-responsive">
                 <table id="usersTable" class="table table-bordered">
+                    <thead>
                         <tr>
                             <th>Статус сети</th>
                             <th>IP-адрес</th>
@@ -51,29 +45,27 @@
                             <th>Номер кабинета</th>
                             <th>Доступ</th>
                         </tr>
+                    </thead>
                     <tbody>
                         {% for user in users %}
-                            <tr class="Color-string {{'color-online' if user.is_online else 'color-offline'}}">
-                                <td>
-                                    <span class="status-circle {{'status-online'  if user.is_online else 'status-offline'}}"></span>
-                                    {{"В" if user.is_online else "Не в"}} сети
-                                </td>
-                                <td>{{ user.ip }}</td>
-                                <td>{{ user.mac }}</td>
-                                <td>{{ user.hostname }}</td>
-                                <td>{{ user.last_seen }}</td>
-                                <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'username')">{{ user.username }}</td>
-                                <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'department')">{{ user.department }}</td>
-                                <td data-mac="{{ user.mac }}" contenteditable="true" onblur="saveChanges(this, '{{ user.mac }}', 'number_cabinet')">{{ user.number_cabinet }}</td>
-                                <td>
-                                    <button
-                                        onclick="toggleAccess(this, '{{ user.mac }}')"
-                                        class="btn btn-action btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-primary' }}"
-                                        data-status="{{ 'true' if user.access_allowed else 'false' }}">
-                                        Доступ {{ "запрещён" if user.access_allowed else "разрешён" }}
-                                    </button>
-                                </td>
-                            </tr>
+                        <tr class="{{'color-online' if user.is_online else 'color-offline'}}">
+                            <td>
+                                <span class="status-circle {{'status-online' if user.is_online else 'status-offline'}}"></span>
+                                {{"В" if user.is_online else "Не в"}} сети
+                            </td>
+                            <td>{{ user.ip }}</td>
+                            <td>{{ user.mac }}</td>
+                            <td>{{ user.hostname }}</td>
+                            <td>{{ user.last_seen }}</td>
+                            <td contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'username')">{{ user.username }}</td>
+                            <td contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'department')">{{ user.department }}</td>
+                            <td contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'number_cabinet')">{{ user.number_cabinet }}</td>
+                            <td>
+                                <button onclick="toggleAccess(this, '{{ user.mac }}')" class="btn btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-primary' }}" data-status="{{ 'true' if user.access_allowed else 'false' }}">
+                                    Доступ {{ "запрещён" if user.access_allowed else "разрешён" }}
+                                </button>
+                            </td>
+                        </tr>
                         {% endfor %}
                     </tbody>
                 </table>
@@ -81,9 +73,8 @@
         </div>
     </div>
 
-    <!-- Футер -->
-    <footer class="footer">
-        <div class="container">
+    <footer class="footer mt-auto">
+        <div class="container text-center">
             <span class="text-footer">© 2024 Управление доступом в Squid. Все права защищены.</span>
             <span class="text-footer">Версия: {{ version }} | Авторы: Shootka, Lermontov</span>
         </div>
