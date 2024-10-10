@@ -41,7 +41,7 @@ To run the program in your local environment
 
 **OR**
 
-    1.pip install -r requirements.txt
+    pip install -r requirements.txt
 
 # Starting the server
 * windows
@@ -72,7 +72,7 @@ To run the program in your local environment
 Чтобы запустить программу в вашей локальной среде
 
     Клонировать репозиторий:
-      ```https://github.com/ShootkaXd/Squid_controller.git```
+      https://github.com/ShootkaXd/Squid_controller.git
 
 # НАЧАЛО
     1. python -m venv venv
@@ -97,7 +97,7 @@ To run the program in your local environment
 
 **ИЛИ**
 
-    1. ```pip install -r requirements.txt```
+    pip install -r requirements.txt
 
 # Запуск сервера
 * windows
