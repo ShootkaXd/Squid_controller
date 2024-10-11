@@ -31,7 +31,7 @@
             </div>
 
             <div id="mainTable">
-                <table id="usersTable" class="table table-bordered table-sm">
+                <table id="usersTable" class="table table-bordered table-striped table-sm">
                     <thead>
                         <tr>
                             <th id="thAli" class="px-5">Статус сети</th>
@@ -47,19 +47,18 @@
                     </thead>
                     <tbody>
                         {% for user in users %}
-                        <tr class="{{'color-online' if user.is_online else 'color-offline'}}">
-                            <td>
+                            <td id="thAli">
                                 <span class="status-circle {{'status-online' if user.is_online else 'status-offline'}}"></span>
                                 {{"В" if user.is_online else "Не в"}} сети
                             </td>
-                            <td>{{ user.ip }}</td>
-                            <td>{{ user.mac }}</td>
-                            <td>{{ user.hostname }}</td>
-                            <td>{{ user.last_seen }}</td>
-                            <td contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'username')">{{ user.username }}</td>
-                            <td contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'department')">{{ user.department }}</td>
-                            <td contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'number_cabinet')">{{ user.number_cabinet }}</td>
-                            <td>
+                            <td id="thAli">{{ user.ip }}</td>
+                            <td id="thAli">{{ user.mac }}</td>
+                            <td id="thAli">{{ user.hostname }}</td>
+                            <td id="thAli">{{ user.last_seen }}</td>
+                            <td id="thAli" contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'username')">{{ user.username }}</td>
+                            <td id="thAli" contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'department')">{{ user.department }}</td>
+                            <td id="thAli" contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'number_cabinet')">{{ user.number_cabinet }}</td>
+                            <td id="thAli">
                                 <button id="btnAccess" onclick="toggleAccess(this, '{{ user.mac }}')" class="btn btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-success' }}" data-status="{{ 'true' if user.access_allowed else 'false' }}">
                                     {{ "Закрыт" if user.access_allowed else "Открыт" }}
                                 </button>
