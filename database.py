@@ -12,7 +12,7 @@ class User(db.Model, UserMixin):
 
     status = db.Column(db.String(20))
     id = db.Column(db.Integer, primary_key=True)
-    ip_address = db.Column(db.String(15), unique=True)  # Добавляем ограничение уникальности
+    ip_address = db.Column(db.String(15), unique=True)
     mac_address = db.Column(db.String(17), unique=True)
     hostname = db.Column(db.String(255))
     last_seen = db.Column(db.String(255))
