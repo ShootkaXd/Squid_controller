@@ -4,15 +4,34 @@ from scapy.layers.l2 import ARP, Ether, srp
 import socket
 import asyncio
 from datetime import datetime
+import subprocess
 import settings
 
-
 async def get_hostname(ip_address):
+    loop = asyncio.get_event_loop()
+    # Попробуем через обратный DNS
     try:
-        return socket.gethostbyaddr(ip_address)[0]
+        hostname, _, _ = await loop.run_in_executor(None, socket.gethostbyaddr, ip_address)
+        return hostname
     except socket.herror:
-        return None
+        pass  # Продолжаем попытки
 
+    # Попробуем через NetBIOS
+    try:
+        result = await loop.run_in_executor(
+            None,
+            subprocess.run,
+            ['nmblookup', '-A', ip_address],
+            {'capture_output': True, 'text': True, 'timeout': 5}
+        )
+        if result.returncode == 0:
+            for line in result.stdout.splitlines():
+                if '<00>' in line:
+                    return line.split()[0]
+    except Exception:
+        pass
+
+    return None
 
 async def scan_local_network(ip):
     devices = []
@@ -23,21 +42,13 @@ async def scan_local_network(ip):
         packet = ether_frame / arp_request
         result = srp(packet, timeout=5, verbose=0)[0]
 
+        tasks = []
         for _, received in result:
             ip_address = received.psrc
             mac_address = received.hwsrc.upper() if received.hwsrc else "Неизвестно"
-            hostname = await get_hostname(ip_address)
+            tasks.append(process_device(ip_address, mac_address, devices))
 
-            devices.append({
-                'ip': ip_address,
-                'mac': mac_address,
-                'hostname': hostname or "Неизвестно",
-                'last_seen': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
-                'status': 'online'
-            })
-
-            print(
-                f"Обнаружено устройство: IP={ip_address}, MAC={mac_address}, hostname={hostname}")  # Вывод информации о каждом найденном устройстве
+        await asyncio.gather(*tasks)
 
     except Exception as e:
         print(f"Ошибка во время сканирования сети: {e}")
@@ -46,6 +57,18 @@ async def scan_local_network(ip):
         f"Сканирование сети {ip} завершено. Найдено устройств: {len(devices)}")  # Вывод информации о завершении сканирования
     return devices
 
+async def process_device(ip_address, mac_address, devices):
+    hostname = await get_hostname(ip_address)
+    devices.append({
+        'ip': ip_address,
+        'mac': mac_address,
+        'hostname': hostname or "Неизвестно",
+        'last_seen': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+        'status': 'online'
+    })
+
+    print(
+        f"Обнаружено устройство: IP={ip_address}, MAC={mac_address}, hostname={hostname or 'Неизвестно'}")  # Вывод информации о каждом найденном устройстве
 
 async def update_database_with_devices():
     try:
@@ -66,7 +89,6 @@ async def update_database_with_devices():
 
     except Exception as e:
         print(f"Ошибка при обновлении базы данных: {e}")
-
 
 async def upsert_device(cursor, device):
     ip_address = device['ip']
@@ -97,7 +119,6 @@ async def upsert_device(cursor, device):
                 'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
                 ("", ip_address, mac_address, "", "", hostname, last_seen, status)
             )
-
 
 async def mark_offline_devices(cursor, scanned_macs):
     # Получаем все MAC-адреса из базы данных

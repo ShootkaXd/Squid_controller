@@ -94,6 +94,7 @@ To run the program in your local environment
     18. pip install flask-security flask-sqlalchemy
     19. pip install Flask-SQLAlchemy
     20. pip install SQLAlchemy
+    21. pip install zeroconf
 
 **ИЛИ**
 
@@ -109,6 +110,7 @@ To run the program in your local environment
   6. ```python app.py run```
 * Ubuntu
   1. Настройте хост и локальную сеть в файле ```seting.py```
+  2. Установить Samba ```sudo apt-get install samba```
   2. откройте ```cmd```
   3. перейдите в папку проекта ```cd path\to\your```
   4. активируйте виртуальную среду ```source venv/bin/activate```
