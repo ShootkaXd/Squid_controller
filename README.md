@@ -109,10 +109,13 @@ To run the program in your local environment
   5. активируйте виртуальную среду ```venv\Scripts\activate```
   6. ```python app.py run```
 * Ubuntu
-  1. Настройте хост и локальную сеть в файле ```seting.py```
+  1. Установить необходимые пакеты ```sudo apt install python3-pip python3-venv git nginx -y```
   2. Установить Samba ```sudo apt-get install samba```
-  2. откройте ```cmd```
-  3. перейдите в папку проекта ```cd path\to\your```
-  4. активируйте виртуальную среду ```source venv/bin/activate```
-  5. ```sudo apt install nmap``` (Если необходимо)
-  6. ```python app.py run```
+  3. Установить  ```sudo apt install nmap``` (Если необходимо)
+  4. Клонировать репозиторий 
+  5. Перейдите в папку проекта ```cd path\to\your```
+  6. Настройте хост и локальную сеть в файле ```seting.py```
+  7. Создатие виртуального окружения ```python3 -m venv venv```
+  8. Активируйте виртуальную среду ```source venv/bin/activate```
+  9. Установить все зависимости ``` pip install -r requirements.txt ```
+  10. Запустить сервер ```python app.py run```
