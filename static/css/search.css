@@ -1,9 +1,13 @@
 .testB {
     color: aliceblue;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
+    margin-left: 20px;
+    text-align: center;
 }
 
 #navBar {
+    justify-content: center;
+    text-align: center;
     background-color: rgb(32, 64, 128);
 }
 
@@ -20,10 +24,20 @@
 }
 
 #mainTable {
-    margin-top: 20px;
+    font-size: 1rem;
+    justify-content: center;
+    text-align: center;
 }
 
 #usersTable {
     background-color: #f5f5f5;
-    word-wrap: break-word;
+}
+
+#thAli{
+    vertical-align: middle;
+}
+
+#btnAccess {
+    font-size: 1rem;
+    opacity: .67;
 }

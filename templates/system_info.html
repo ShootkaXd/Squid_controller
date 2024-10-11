@@ -15,7 +15,7 @@
     </a>
     <div class="collapse navbar-collapse">
         <ul class="navbar-nav ml-auto">
-            <li class="nav-item"><a class="nav-link testB" href={{ url_for('users') }}>Главная</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('users')}}">Главная</a></li>
             <li class="nav-item"><a class="nav-link testB" href="#" data-url="/blocked-sites">Заблокированные сайты</a></li>
             <li class="nav-item"><a class="nav-link testB" href="#" data-url="/monitoring">Мониторинг</a></li>
             <li class="nav-item"><a class="nav-link testB" href="{{ url_for('system_info') }}">Информация о системе</a></li>
@@ -57,6 +57,7 @@
     <footer class="footer mt-auto">
         <div class="container text-center">
             <span class="text-footer">© 2024 Управление доступом в Squid. Все права защищены.</span>
+            <span class="text-footer">Версия: {{ version }} | Авторы: Shootka, Lermontov</span>
         </div>
     </footer>
 

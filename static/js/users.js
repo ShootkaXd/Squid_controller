@@ -114,15 +114,15 @@ function toggleAccess(button, macAddress) {
             var newStatus = response.newStatus;
 
             // Обновляем текст кнопки
-            button.innerText = newStatus ? 'доступ Запрещён' : 'доступ Разрешён';
+            button.innerText = newStatus ? 'Закрыт' : 'Открыт';
 
             // Обновляем класс кнопки
             if (newStatus) {
-                button.classList.remove('btn-primary');
+                button.classList.remove('btn-success');
                 button.classList.add('btn-secondary');
             } else {
                 button.classList.remove('btn-secondary');
-                button.classList.add('btn-primary');
+                button.classList.add('btn-success');
             }
 
             // Обновляем data-атрибут с новым статусом

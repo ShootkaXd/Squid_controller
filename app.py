@@ -21,6 +21,8 @@ import platform
 import socket
 import sqlite3
 import os
+import signal
+
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -45,7 +47,7 @@ def inject_version():
     return dict(version=version.__version__)
 
 @app.route('/system_info')
-@login_required
+#@login_required
 def system_info():
     os_info = platform.system()  
     os_version = platform.version()  
@@ -79,8 +81,12 @@ def login():
 
     return render_template('login.html', form=form)
 
+@app.errorhandler(401)
+def unauthorized_error(error):
+    return redirect(url_for('login'))
+
 @app.route('/index')
-@login_required
+#@login_required
 def users():
     try:
         conn = sqlite3.connect('access_control.db')
@@ -134,7 +140,7 @@ app.jinja_env.filters['format_uptime'] = format_uptime
 
 
 @app.route('/update_user', methods=['POST'])
-@login_required
+#@login_required
 def update_user():
     try:
         data = request.get_json()
@@ -172,7 +178,7 @@ def update_user():
 
 
 @app.route('/confirm_access', methods=['POST'])
-@login_required
+#@login_required
 def confirm_access():
     try:
         conn = sqlite3.connect('access_control.db')
@@ -198,7 +204,7 @@ def confirm_access():
         return jsonify({'status': 'error', 'message': 'Failed to confirm access'})
 
 @app.route('/toggle_access', methods=['POST'])
-@login_required
+#@login_required
 def toggle_access():
     mac_address = request.form.get('macAddress')
 
@@ -234,4 +240,4 @@ if __name__ == '__main__':
     scan_thread = threading.Thread(target=run_periodic_scan)
     scan_thread.daemon = True
     scan_thread.start()
-    app.run(host=settings.host, port=settings.port)
+    app.run(host=settings.host, port=settings.port,)

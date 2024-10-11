@@ -10,7 +10,7 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 
-<nav id="navBar" class="navbar navbar-expand-sm">
+<nav id="navBar" class="navbar navbar-expand container-fluid">
     <a class="navbar-brand" href="#">
         <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
     </a>
@@ -24,26 +24,25 @@
     </div>
 </nav>
 
-<body id="GIGI">
-    <div id="mainContent">
-        <div class="container mt-4">
-            <div id="searchContainer" class="mb-4">
+<body>
+        <div class="container mt-5">
+            <div id="searchContainer" class="mb-3">
                 <input type="text" id="searchInput" class="form-control" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя или IP-адресу">
             </div>
 
-            <div id="mainTable" class="table-responsive">
-                <table id="usersTable" class="table table-bordered">
+            <div id="mainTable">
+                <table id="usersTable" class="table table-bordered table-sm">
                     <thead>
                         <tr>
-                            <th>Статус сети</th>
-                            <th>IP-адрес</th>
-                            <th>MAC-адрес</th>
-                            <th>Сетевое имя</th>
-                            <th>Последний раз в сети</th>
-                            <th>Имя пользователя</th>
-                            <th>Отдел</th>
-                            <th>Номер кабинета</th>
-                            <th>Доступ</th>
+                            <th id="thAli" class="px-5">Статус сети</th>
+                            <th id="thAli">IP-адрес</th>
+                            <th id="thAli">MAC-адрес</th>
+                            <th id="thAli">Сетевое имя</th>
+                            <th id="thAli" class="container">Последний раз в сети</th>
+                            <th id="thAli">Имя пользователя</th>
+                            <th id="thAli">Отдел</th>
+                            <th id="thAli">Номер кабинета</th>
+                            <th id="thAli">Доступ</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -61,8 +60,8 @@
                             <td contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'department')">{{ user.department }}</td>
                             <td contenteditable="true" data-mac="{{ user.mac }}" onblur="saveChanges(this, '{{ user.mac }}', 'number_cabinet')">{{ user.number_cabinet }}</td>
                             <td>
-                                <button onclick="toggleAccess(this, '{{ user.mac }}')" class="btn btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-primary' }}" data-status="{{ 'true' if user.access_allowed else 'false' }}">
-                                    Доступ {{ "запрещён" if user.access_allowed else "разрешён" }}
+                                <button id="btnAccess" onclick="toggleAccess(this, '{{ user.mac }}')" class="btn btn-sm {{ 'btn-secondary' if user.access_allowed else 'btn-success' }}" data-status="{{ 'true' if user.access_allowed else 'false' }}">
+                                    {{ "Закрыт" if user.access_allowed else "Открыт" }}
                                 </button>
                             </td>
                         </tr>
@@ -71,7 +70,6 @@
                 </table>
             </div>
         </div>
-    </div>
 
     <footer class="footer mt-auto">
         <div class="container text-center">
