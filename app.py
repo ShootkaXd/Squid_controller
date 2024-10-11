@@ -1,8 +1,6 @@
 from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
 from flask_login import LoginManager, login_user, login_required
-import sqlite3
 from datetime import datetime, timedelta
-import os
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_limiter.util import get_remote_address
 from flask_limiter import Limiter
@@ -19,6 +17,10 @@ import settings
 import version
 import asyncio
 import threading
+import platform
+import socket
+import sqlite3
+import os
 
 app = Flask(__name__)
 socketio = SocketIO(app)
@@ -41,6 +43,23 @@ def load_user(user_id):
 @app.context_processor
 def inject_version():
     return dict(version=version.__version__)
+
+@app.route('/system_info')
+@login_required
+def system_info():
+    os_info = platform.system()  
+    os_version = platform.version()  
+    hostname = socket.gethostname()  
+    ip_address = socket.gethostbyname(hostname)
+
+    system_details = {
+        'os_info': os_info,
+        'os_version': os_version,
+        'hostname': hostname,
+        'ip_address': ip_address,
+    }
+
+    return render_template('system_info.html', system_details=system_details)
 
 @app.route('/', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")

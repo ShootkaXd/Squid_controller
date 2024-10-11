@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Информация о системе</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+</head>
+
+<nav id="navBar" class="navbar navbar-expand-sm">
+    <a class="navbar-brand" href="#">
+        <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
+    </a>
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item"><a class="nav-link testB" href={{ url_for('users') }}>Главная</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/blocked-sites">Заблокированные сайты</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/monitoring">Мониторинг</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('system_info') }}">Информация о системе</a></li>
+        </ul>
+    </div>
+</nav>
+
+<body>
+    <div class="container mt-4">
+        <h2>Информация о системе</h2>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th>Значение</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Операционная система</td>
+                    <td>{{ system_details.os_info }}</td>
+                </tr>
+                <tr>
+                    <td>Версия ОС</td>
+                    <td>{{ system_details.os_version }}</td>
+                </tr>
+                <tr>
+                    <td>Сетевое имя</td>
+                    <td>{{ system_details.hostname }}</td>
+                </tr>
+                <tr>
+                    <td>IP-адрес</td>
+                    <td>{{ system_details.ip_address }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <footer class="footer mt-auto">
+        <div class="container text-center">
+            <span class="text-footer">© 2024 Управление доступом в Squid. Все права защищены.</span>
+        </div>
+    </footer>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
