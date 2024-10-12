@@ -10,3 +10,4 @@ access_control.db
 /static/images
 /__pycache__
 settings.py
+app.log

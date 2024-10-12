@@ -82,6 +82,40 @@ def system_info():
         logger.error(f"Ошибка при получении системной информации: {e}")
         return render_template('system_info.html', system_details={})
 
+@app.route('/logs')
+@login_required
+def logs():
+    try:
+        def tail(file_path, lines=100):
+            """Читает последние `lines` строк из файла `file_path`."""
+            with open(file_path, 'rb') as f:
+                f.seek(0, os.SEEK_END)
+                buffer = bytearray()
+                pointer = f.tell() - 1
+                line_count = 0
+
+                while pointer >= 0 and line_count < lines:
+                    f.seek(pointer)
+                    char = f.read(1)
+                    if char == b'\n':
+                        line_count += 1
+                        if line_count == lines:
+                            break
+                    buffer.extend(char)
+                    pointer -= 1
+
+                buffer = buffer[::-1]  # Разворачиваем буфер
+                return buffer.decode('utf-8', errors='replace')
+
+        log_file_path = 'app.log'  # Убедитесь, что путь к файлу логов правильный
+        log_content = tail(log_file_path, lines=100)
+
+        return render_template('logs.html', log_content=log_content)
+    except Exception as e:
+        logger.error(f"Ошибка при получении логов: {e}")
+        flash('Не удалось загрузить логи.', 'error')
+        return render_template('logs.html', log_content="")
+
 @app.route('/', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")
 def login():
@@ -200,6 +234,39 @@ def update_user():
     except Exception as e:
         logger.error(f"Ошибка при обновлении пользователя: {e}")
         return jsonify({'status': 'error'})
+
+    """Рабочий код"""
+    # @app.route('/update_user', methods=['POST'])
+    # # @login_required
+    # @login_required
+    # def update_user():
+    #     try:
+    #         data = request.get_json()
+    #         users_data = data.get('users')
+    #         with sqlite3.connect('access_control.db') as conn:
+    #             cursor = conn.cursor()
+    #             for user_data in users_data:
+    #                 ip = user_data.get('ip')
+    #                 mac = user_data.get('mac')
+    #                 username = user_data.get('username')
+    #                 department = user_data.get('department')
+    #                 cabinet = user_data.get('cabinet')
+    #                 cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac,))
+    #                 existing_user = cursor.fetchone()
+    #                 if existing_user:
+    #                     cursor.execute(
+    #                         'UPDATE users SET username = ?, department = ?, number_cabinet = ? WHERE mac_address = ?',
+    #                         (username, department, cabinet, mac))
+    #                 else:
+    #                     cursor.execute(
+    #                         'INSERT INTO users (ip_address, mac_address, username, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
+    #                         (ip, mac, username, department, cabinet))
+    #             conn.commit()
+    #         return jsonify({'status': 'success'})
+    #     except Exception as e:
+    #         print(e)
+    #         logger.error(f"Ошибка при обновлении пользователя: {e}")
+    #         return jsonify({'status': 'error'})
 
 @app.route('/confirm_access', methods=['POST'])
 @login_required

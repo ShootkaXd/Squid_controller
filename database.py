@@ -29,7 +29,7 @@ cursor.execute('''
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         status TEXT DEFAULT "offline",
         ip_address TEXT,
-        mac_address TEXT,
+        mac_address TEXT UNIQUE,
         hostname TEXT,
         last_seen TEXT,
         username TEXT,
