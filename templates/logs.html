@@ -2,30 +2,12 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/logs.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
     <title>Логи Приложения</title>
-    <style>
-        body { font-family: Arial, sans-serif; padding: 20px; }
-        #log-container {
-            width: 100%;
-            height: 80vh;
-            overflow-y: scroll;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            font-family: monospace;
-        }
-        #refresh-button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
-    </style>
     <script>
-        // Функция для обновления логов через AJAX
         function refreshLogs() {
             fetch('{{ url_for("logs") }}')
                 .then(response => response.text())
@@ -38,10 +20,22 @@
                 .catch(err => console.error('Ошибка при обновлении логов:', err));
         }
 
-        // Автоматическое обновление логов каждые 60 секунд
         setInterval(refreshLogs, 60000);
     </script>
 </head>
+<nav id="navBar" class="navbar navbar-expand container-fluid">
+    <a class="navbar-brand" href="#">
+        <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
+    </a>
+    <div class="collapse navbar-collapse">
+        <ul class="navbar-nav ml-auto">
+            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('users') }}">Главная</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/blocked-sites">Заблокированные сайты</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('system_info') }}">Информация о системе</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="{{url_for('logs')}}">Логи</a></li>
+        </ul>
+    </div>
+</nav>
 <body>
     <h1>Логи Приложения</h1>
     <div id="log-container">{{ log_content }}</div>
