@@ -10,6 +10,7 @@ import csv
 import settings
 import logging
 import json
+import subprocess  # Added for managing Squid
 from flask import Flask, render_template, redirect, url_for, request, jsonify, flash, Response
 from flask_login import LoginManager, login_user, login_required
 from datetime import datetime, timedelta
@@ -55,6 +56,45 @@ def load_user(user_id):
 @app.context_processor
 def inject_version():
     return dict(version=version.__version__)
+
+# ------------------ Squid Management Helper Functions ------------------ #
+
+def update_squid_acl():
+    """
+    Update the Squid ACL file based on the database entries where access is allowed.
+    """
+    try:
+        allowed_macs = []
+        with sqlite3.connect('access_control.db') as conn:
+            cursor = conn.cursor()
+            cursor.execute('SELECT mac_address FROM users WHERE access_allowed = 1')
+            rows = cursor.fetchall()
+            allowed_macs = [row[0] for row in rows]
+
+        acl_file_path = '/etc/squid/allowed_macs.acl'
+        with open(acl_file_path, 'w') as acl_file:
+            for mac in allowed_macs:
+                acl_file.write(f"{mac}\n")
+
+        logger.info("Squid ACL file updated successfully.")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to update Squid ACL file: {e}")
+        return False
+
+def reload_squid():
+    """
+    Reload the Squid service to apply ACL changes.
+    """
+    try:
+        subprocess.run(['sudo', 'systemctl', 'reload', 'squid'], check=True)
+        logger.info("Squid service reloaded successfully.")
+        return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Failed to reload Squid service: {e}")
+        return False
+
+# ------------------ Existing Routes and Functions ------------------ #
 
 @app.route('/system_info')
 @login_required
@@ -290,7 +330,8 @@ def format_uptime(uptime):
 
 app.jinja_env.filters['format_uptime'] = format_uptime
 
-"""Рабочий код"""
+# ------------------ New Routes for Squid Management ------------------ #
+
 @app.route('/update_user', methods=['POST'])
 @login_required
 def update_user():
@@ -380,29 +421,44 @@ def toggle_access():
         new_status = loop.run_until_complete(toggle())
         loop.close()
 
-        return jsonify({'newStatus': new_status})
+        # Update Squid ACL and reload Squid
+        if update_squid_acl():
+            if reload_squid():
+                return jsonify({'newStatus': new_status, 'message': 'Access updated successfully.'})
+            else:
+                return jsonify({'status': 'error', 'message': 'Failed to reload Squid.'}), 500
+        else:
+            return jsonify({'status': 'error', 'message': 'Failed to update Squid ACL.'}), 500
 
     except Exception as e:
         logger.error(f"Ошибка при переключении доступа: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to toggle access'})
 
-async def periodic_scan(interval=0):
-    """Периодическое сканирование сети с заданным интервалом (в секундах)."""
+# ------------------ Periodic Network Scan ------------------ #
+
+async def periodic_scan(interval=300):
+    """
+    Periodic network scan with a specified interval (in seconds).
+    Default is 5 minutes.
+    """
     while True:
         try:
             await update_database_with_devices()
         except Exception as e:
             logger.error(f"Ошибка в периодическом сканировании: {e}")
-        await asyncio.sleep(interval)  # Задержка между сканированиями
+        await asyncio.sleep(interval)  # Delay between scans
 
 def start_periodic_scan():
-    """Запуск периодического сканирования в отдельном потоке."""
+    """Start periodic scanning in a separate thread."""
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     loop.run_until_complete(periodic_scan())
+    loop.close()
+
+# ------------------ Main Entry Point ------------------ #
 
 if __name__ == '__main__':
-    # Запуск периодического сканирования в отдельном потоке
+    # Start periodic scanning in a separate thread
     scan_thread = threading.Thread(target=start_periodic_scan, daemon=True)
     scan_thread.start()
     logger.info(f"Запуск веб-приложения на {settings.host}:{settings.port}")
