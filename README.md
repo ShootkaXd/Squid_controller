@@ -1,121 +1,101 @@
-﻿# Program for managing squid proxy server
+﻿# Программа для управления прокси-сервером Proxy server management program
+
+[English](README.en.md) | [Русский](README.ru.md)
 
 ![PyPI - Version](https://img.shields.io/pypi/v/flask)
 ![PyPI - Version](https://img.shields.io/pypi/v/scanpy?color=rgb)
 ![PyPI - Version](https://img.shields.io/pypi/v/scapy?color=red)
 
+### Содержание
+- [Обзор](#обзор)
+- [Особенности](#особенности)
+- [Установка](#установка)
+- [Использование](#использование)
+- [Конфигурация](#конфигурация)
+- [Лицензия](#лицензия)
 
-**Web application for managing the Squid proxy server**
-* ACL Access Control 
-* System monitoring
-* System Information
-* SIEM system
+### Обзор
 
-# Install
+**Internet Access Control Manager** — это инструмент на Python, предназначенный для управления и мониторинга доступа в интернет в вашей локальной сети. Он сканирует сеть на предмет подключённых устройств, получает их IP и MAC адреса, разрешает имена хостов и ведёт базу данных активных и неактивных устройств. Этот инструмент идеально подходит для администраторов, стремящихся обеспечить соблюдение сетевых политик и безопасное использование интернета.
 
-To run the program in your local environment
+### Особенности
 
-    Clone the repository::
-      https://github.com/ShootkaXd/Squid_controller.git
+- **Сканирование сети:** Обнаруживает все устройства, подключённые к вашей локальной сети, с помощью ARP-запросов.
+- **Разрешение имен хостов:** Пытается разрешить имена хостов устройств через обратный DNS и NetBIOS.
+- **Управление базой данных:** Хранит информацию об устройствах в базе данных SQLite, отслеживая их статус онлайн/оффлайн.
+- **Асинхронные операции:** Использует asyncio для эффективных и неблокирующих сетевых операций.
+- **Логирование:** Предоставляет подробные логи для мониторинга и отладки.
 
-# Getting Started
-    1. python -m venv venv
-    2. npm install chart.js
-    3. pip install Flask-SSLify
-    4. pip install scanpy
-    6. pip install Flask-APScheduler
-    7. pip install flask-socketio
-    8. pip install Flask-Login
-    9. pip install Flask-WTF
-    10. pip install aiosqlite
-    11. pip install scapy
-    12. pip install psutil
-    13. pip install Flask-Limiter
-    14. python -m pip install requests
-    15. pip install Flask-Limiter==1.3.0
-    16. pip install Werkzeug
-    17. pip install flask-admin
-    18. pip install flask-security flask-sqlalchemy
-    19. pip install Flask-SQLAlchemy
-    20. pip install SQLAlchemy
+### Установка
 
-**OR**
+#### Предварительные требования
 
+- **Python 3.7+**
+- **pip**
+
+#### Шаги
+
+1. **Клонируйте репозиторий:**
+
+    ```bash
+    git clone https://github.com/yourusername/internet-access-control-manager.git
+    cd internet-access-control-manager
+    ```
+
+2. **Создайте виртуальное окружение (Рекомендуется):**
+
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+
+3. **Установите зависимости:**
+
+    ```bash
     pip install -r requirements.txt
+    ```
 
-# Starting the server
-* windows
-  1. Configure the host and local network in the ```seting.py``` file
-  2. install ```Nmap```
-  3. open cmd/PowerShall
-  4. go to the project folder ```cd path\to\your```
-  5. activate the virtual environment ```venv\Scripts\activate```
-  6. ```python app.py run```
-* Ubuntu
-   1. Configure the host and local network in the ```seting.py``` file 
-   2. open cmd
-   3. o to the project folder ```cd path\to\your```
-   4. activate the virtual environment ```source venv/bin/activate```
-   5. ```sudo apt install nmap``` (Если необходимо) 
-   6. ```python app.py run```
+4. **Установите системные зависимости:**
 
-#
+    Инструмент использует `nmblookup` для разрешения имен хостов NetBIOS. Установите его с помощью:
 
-**Веб-приложение для управления прокси-сервером Squid**
-* Контроль доступа ACL
-* Мониторинг системы
-* Информация о системе
-* Система SIEM
+    ```bash
+    sudo apt update
+    sudo apt install samba-common-bin
+    ```
 
-# Установка
+### Использование
 
-Чтобы запустить программу в вашей локальной среде
+1. **Настройте диапазон сети:**
 
-    Клонировать репозиторий:
-      https://github.com/ShootkaXd/Squid_controller.git
+    Отредактируйте файл `settings.py`, чтобы указать диапазон вашей сети. Например:
 
-# НАЧАЛО
-    1. python -m venv venv
-    2. npm install chart.js
-    3. pip install Flask-SSLify
-    4. pip install scanpy
-    6. pip install Flask-APScheduler
-    7. pip install flask-socketio
-    8. pip install Flask-Login
-    9. pip install Flask-WTF
-    10. pip install aiosqlite
-    11. pip install scapy
-    12. pip install psutil
-    13. pip install Flask-Limiter
-    14. python -m pip install requests
-    15. pip install Flask-Limiter==1.3.0
-    16. pip install Werkzeug
-    17. pip install flask-admin
-    18. pip install flask-security flask-sqlalchemy
-    19. pip install Flask-SQLAlchemy
-    20. pip install SQLAlchemy
-    21. pip install zeroconf
+    ```python
+    # settings.py
+    scan_network = '192.168.1.0/24'
+    ```
 
-**ИЛИ**
+2. **Запустите сканер:**
 
-    pip install -r requirements.txt
+    ```bash
+    python3 app.py run
+    ```
 
-# Запуск сервера
-* windows
-  1. Настройте хост и локальную сеть в файле ```seting.py```
-  2. Установить ```Nmap``` 
-  3. откройте ```cmd/PowerShall```
-  4. перейдите в папку проекта ```cd path\to\your```
-  5. активируйте виртуальную среду ```venv\Scripts\activate```
-  6. ```python app.py run```
-* Ubuntu
-  1. Установить необходимые пакеты ```sudo apt install python3-pip python3-venv git nginx -y```
-  2. Установить Samba ```sudo apt-get install samba```
-  3. Установить  ```sudo apt install nmap``` (Если необходимо)
-  4. Клонировать репозиторий 
-  5. Перейдите в папку проекта ```cd path\to\your```
-  6. Настройте хост и локальную сеть в файле ```seting.py```
-  7. Создатие виртуального окружения ```python3 -m venv venv```
-  8. Активируйте виртуальную среду ```source venv/bin/activate```
-  9. Установить все зависимости ``` pip install -r requirements.txt ```
-  10. Запустить сервер ```python app.py run```
+    Скрипт просканирует указанную сеть, разрешит имена хостов и обновит базу данных SQLite `access_control.db` текущим статусом каждого устройства.
+
+3. **Проверьте базу данных:**
+
+    Используйте любой SQLite клиент для просмотра файла `access_control.db` и мониторинга статусов устройств.
+
+### Конфигурация
+
+- **Файл базы данных:**
+
+    По умолчанию база данных SQLite называется `access_control.db`. Вы можете изменить это, изменив строку подключения к базе данных в `main.py`.
+
+- **Логирование:**
+
+    Логи настроены с использованием модуля `logging` Python. При необходимости измените уровень логирования и формат в файле `main.py`. 
+
+### Лицензия
+
