@@ -10,11 +10,9 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 
-<body>
-    <nav id="navBar" class="navbar navbar-expand container-fluid">
-        <a class="navbar-brand" href="#">
-            <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
-        </a>
+<body id="BodyLogs">
+<!-- Панель навигации -->
+    <nav id="navBar" class="navbar navbar-expand container-fluid mb-5">
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ml-auto">
             <li class="nav-item"><a class="nav-link testB" href="{{ url_for('users') }}">Главная</a></li>
@@ -24,7 +22,8 @@
             </ul>
         </div>
     </nav>
-
+    <h1>ЛОГИ (для администрации)</h1>
+<!-- Скрипт для консоли -->
     <script>
         function refreshLogs() {
             fetch('{{ url_for("logs") }}')
@@ -40,14 +39,18 @@
 
         setInterval(refreshLogs, 60000);
     </script>
-        <!-- Кнопки экспорта добавлены здесь -->
-    <div id="exportContainer" class="mb-3">
+
+<!-- Отображение консоли на сайте -->
+    <div id="log-container">{{ log_content }}</div>
+
+<!-- Кнопки -->
+    <div id="exportContainer" class="container-fluid mb-3">
+        <button id="refresh-button" onclick="refreshLogs()">Обновить Логи</button>
         <a href="{{ url_for('export_csv') }}" class="btn btn-success btn-sm ml-3 btn-export">Экспорт в CSV</a>
         <a href="{{ url_for('export_json') }}" class="btn btn-primary btn-sm ml-3 btn-export">Экспорт в JSON</a>
     </div>
 
-    <div id="log-container">{{ log_content }}</div>
-    <button id="refresh-button" onclick="refreshLogs()">Обновить Логи</button>
+<!-- Подвал -->
     <footer class="footer mt-auto">
         <div class="container text-center">
             <span class="text-footer">© 2024 Управление доступом в Squid. Все права защищены.</span>

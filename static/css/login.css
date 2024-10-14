@@ -26,7 +26,7 @@ body {
     border-radius: 0px;
     box-shadow: 0 0 20px rgba(240, 232, 232, 0.2);
 }
-
+/* Настройка разделителя */
 .razdelitel{
     position: relative;
     display: block;
@@ -43,7 +43,6 @@ body {
     height: 2px;
     background-color: rgb(14, 225, 253);
 }
-   
 .razdelitel:before{
     left:15px;
 }

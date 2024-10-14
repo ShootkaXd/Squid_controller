@@ -1,19 +1,34 @@
+/* Параметры тела логов */
+#BodyLogs{
+    background-color: rgb(62, 98, 170);
+}
 
-        #log-container {
-            width: 100%;
-            height: 80vh;
-            overflow-y: scroll;
-            background-color: #1e1e1e;
-            color: #d4d4d4;
-            padding: 10px;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            white-space: pre-wrap;
-            font-family: monospace;
-        }
-        #refresh-button {
-            margin-top: 10px;
-            padding: 10px 20px;
-            font-size: 16px;
-        }
+#exportContainer{
+    text-align: center;
+    
+}
+h1{
+    color: aliceblue;
+    text-align: center;
+    vertical-align: middle;
+}
+
+#log-container {
+    width: 100%;
+    height: 80vh;
+    overflow-y: scroll;
+    background-color: #1e1e1e;
+    color: #d4d4d4;
+    padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    white-space: pre-wrap;
+    font-family: monospace;
+}
+
+#refresh-button {
+    margin-top: 10px;
+    padding: 10px 20px;
+    font-size: 16px;    
+}
