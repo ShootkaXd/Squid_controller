@@ -1,4 +1,3 @@
-import ipaddress
 import aiosqlite
 import socket
 import asyncio
@@ -8,7 +7,6 @@ import os
 import sqlite3
 import threading
 import csv
-import subprocess
 import settings
 import logging
 import json
@@ -17,19 +15,12 @@ from flask_login import LoginManager, login_user, login_required
 from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_limiter.util import get_remote_address
-from scapy.layers.l2 import ARP, Ether, srp
 from io import StringIO
 from flask_limiter import Limiter
-from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
 from flask_socketio import SocketIO
 from database import User, db
 from forms import LoginForm
-from network_scanner import update_database_with_devices, scan_local_network
-from flask_sslify import SSLify
-from wtforms import SelectField
-from flask_wtf import FlaskForm
-
+from network_scanner import update_database_with_devices
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO,
@@ -299,76 +290,37 @@ def format_uptime(uptime):
 
 app.jinja_env.filters['format_uptime'] = format_uptime
 
+"""Рабочий код"""
 @app.route('/update_user', methods=['POST'])
 @login_required
 def update_user():
     try:
         data = request.get_json()
-        users_data = data.get('users', [])
-
-        async def update_users():
-            async with aiosqlite.connect('access_control.db') as conn:
-                cursor = await conn.cursor()
-                for user_data in users_data:
-                    ip = user_data.get('ip')
-                    mac = user_data.get('mac')
-                    username = user_data.get('username')
-                    department = user_data.get('department')
-                    cabinet = user_data.get('cabinet')
-
-                    # Используем UPSERT для вставки или обновления
-                    await cursor.execute('''
-                        INSERT INTO users (ip_address, mac_address, username, department, number_cabinet)
-                        VALUES (?, ?, ?, ?, ?)
-                        ON CONFLICT(mac_address) DO UPDATE SET
-                            username=excluded.username,
-                            department=excluded.department,
-                            number_cabinet=excluded.number_cabinet
-                    ''', (ip, mac, username, department, cabinet))
-                await conn.commit()
-
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(update_users())
-        loop.close()
-
+        users_data = data.get('users')
+        with sqlite3.connect('access_control.db') as conn:
+            cursor = conn.cursor()
+            for user_data in users_data:
+                ip = user_data.get('ip')
+                mac = user_data.get('mac')
+                username = user_data.get('username')
+                department = user_data.get('department')
+                cabinet = user_data.get('cabinet')
+                cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac,))
+                existing_user = cursor.fetchone()
+                if existing_user:
+                    cursor.execute(
+                        'UPDATE users SET username = ?, department = ?, number_cabinet = ? WHERE mac_address = ?',
+                        (username, department, cabinet, mac))
+                else:
+                    cursor.execute(
+                        'INSERT INTO users (ip_address, mac_address, username, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
+                        (ip, mac, username, department, cabinet))
+            conn.commit()
         return jsonify({'status': 'success'})
     except Exception as e:
+        print(e)
         logger.error(f"Ошибка при обновлении пользователя: {e}")
         return jsonify({'status': 'error'})
-
-    """Рабочий код"""
-    # @app.route('/update_user', methods=['POST'])
-    # # @login_required
-    # @login_required
-    # def update_user():
-    #     try:
-    #         data = request.get_json()
-    #         users_data = data.get('users')
-    #         with sqlite3.connect('access_control.db') as conn:
-    #             cursor = conn.cursor()
-    #             for user_data in users_data:
-    #                 ip = user_data.get('ip')
-    #                 mac = user_data.get('mac')
-    #                 username = user_data.get('username')
-    #                 department = user_data.get('department')
-    #                 cabinet = user_data.get('cabinet')
-    #                 cursor.execute('SELECT * FROM users WHERE mac_address = ?', (mac,))
-    #                 existing_user = cursor.fetchone()
-    #                 if existing_user:
-    #                     cursor.execute(
-    #                         'UPDATE users SET username = ?, department = ?, number_cabinet = ? WHERE mac_address = ?',
-    #                         (username, department, cabinet, mac))
-    #                 else:
-    #                     cursor.execute(
-    #                         'INSERT INTO users (ip_address, mac_address, username, department, number_cabinet) VALUES (?, ?, ?, ?, ?)',
-    #                         (ip, mac, username, department, cabinet))
-    #             conn.commit()
-    #         return jsonify({'status': 'success'})
-    #     except Exception as e:
-    #         print(e)
-    #         logger.error(f"Ошибка при обновлении пользователя: {e}")
-    #         return jsonify({'status': 'error'})
 
 @app.route('/confirm_access', methods=['POST'])
 @login_required
@@ -434,7 +386,7 @@ def toggle_access():
         logger.error(f"Ошибка при переключении доступа: {e}")
         return jsonify({'status': 'error', 'message': 'Failed to toggle access'})
 
-async def periodic_scan(interval=60):
+async def periodic_scan(interval=0):
     """Периодическое сканирование сети с заданным интервалом (в секундах)."""
     while True:
         try:

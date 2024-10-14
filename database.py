@@ -28,7 +28,7 @@ cursor.execute('''
     CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         status TEXT DEFAULT "offline",
-        ip_address TEXT UNIQUE,
+        ip_address TEXT ,
         mac_address TEXT UNIQUE,
         hostname TEXT,
         last_seen TEXT,
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS blocked_sites(
 cursor.execute('''
     CREATE TABLE IF NOT EXISTS new_users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        ip_address TEXT UNIQUE,
+        ip_address TEXT ,
         mac_address TEXT UNIQUE,
         username TEXT,
         department TEXT,
