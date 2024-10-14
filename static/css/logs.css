@@ -5,8 +5,13 @@
 
 #exportContainer{
     text-align: center;
-    
 }
+
+#btnRefresh, #btnCSV, #btnJSON{
+    font-size: 2rem;
+    margin-top: 11px;
+}
+
 h1{
     color: aliceblue;
     text-align: center;
