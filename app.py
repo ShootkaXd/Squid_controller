@@ -1,16 +1,24 @@
 import ipaddress
 import aiosqlite
-from scapy.layers.l2 import ARP, Ether, srp
 import socket
 import asyncio
-from datetime import datetime, timedelta
+import version
+import platform
+import os
+import sqlite3
+import threading
+import csv
 import subprocess
 import settings
 import logging
-from flask import Flask, render_template, redirect, url_for, request, jsonify, flash
+import json
+from flask import Flask, render_template, redirect, url_for, request, jsonify, flash, Response
 from flask_login import LoginManager, login_user, login_required
+from datetime import datetime, timedelta
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_limiter.util import get_remote_address
+from scapy.layers.l2 import ARP, Ether, srp
+from io import StringIO
 from flask_limiter import Limiter
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
@@ -21,11 +29,7 @@ from network_scanner import update_database_with_devices, scan_local_network
 from flask_sslify import SSLify
 from wtforms import SelectField
 from flask_wtf import FlaskForm
-import version
-import platform
-import os
-import sqlite3
-import threading
+
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO,
@@ -115,6 +119,104 @@ def logs():
         logger.error(f"Ошибка при получении логов: {e}")
         flash('Не удалось загрузить логи.', 'error')
         return render_template('logs.html', log_content="")
+
+@app.route('/export/csv')
+@login_required
+def export_csv():
+    try:
+        # Асинхронное извлечение пользователей из базы данных
+        async def fetch_users():
+            async with aiosqlite.connect('access_control.db') as conn:
+                conn.row_factory = aiosqlite.Row
+                cursor = await conn.cursor()
+                await cursor.execute('''
+                    SELECT ip_address, mac_address, hostname, last_seen, username, department, number_cabinet, access_allowed 
+                    FROM users
+                ''')
+                rows = await cursor.fetchall()
+                return rows
+
+        # Запуск события для асинхронной работы
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        rows = loop.run_until_complete(fetch_users())
+        loop.close()
+
+        # Создание CSV с использованием модуля csv и добавлением BOM
+        si = StringIO(newline='')  # Обязательно указываем newline=''
+        writer = csv.writer(si, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
+
+        # Запись заголовков
+        writer.writerow(['ip_address', 'mac_address', 'hostname', 'last_seen', 'username', 'department', 'number_cabinet', 'access_allowed'])
+
+        # Запись данных
+        for row in rows:
+            writer.writerow([
+                row['ip_address'],
+                row['mac_address'],
+                row['hostname'],
+                row['last_seen'],
+                row['username'],
+                row['department'],
+                row['number_cabinet'],
+                row['access_allowed']
+            ])
+
+        output = si.getvalue()
+        si.close()
+
+        # Добавление BOM (Byte Order Mark) для корректного отображения в Excel
+        bom = '\ufeff'
+        csv_data = bom + output
+
+        # Возвращение ответа с правильной кодировкой
+        return Response(
+            csv_data,
+            mimetype='text/csv',
+            headers={'Content-Disposition': 'attachment;filename=users.csv'}
+        )
+    except Exception as e:
+        logger.error(f"Ошибка при экспорте CSV: {e}")
+        flash('Не удалось экспортировать данные в CSV.', 'error')
+        return redirect(url_for('users'))
+
+@app.route('/export/json')
+@login_required
+def export_json():
+    try:
+        async def fetch_users():
+            async with aiosqlite.connect('access_control.db') as conn:
+                conn.row_factory = aiosqlite.Row
+                cursor = await conn.cursor()
+                await cursor.execute('''
+                    SELECT ip_address, mac_address, hostname, last_seen, username, department, number_cabinet, access_allowed 
+                    FROM users
+                ''')
+                rows = await cursor.fetchall()
+                return rows
+
+        # Запуск события для асинхронной работы
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        rows = loop.run_until_complete(fetch_users())
+        loop.close()
+
+        # Преобразование данных в список словарей
+        users_data = [dict(row) for row in rows]
+
+        # Конвертация списка в JSON
+        json_data = json.dumps(users_data, ensure_ascii=False)  # ensure_ascii=False для поддержки русских символов
+
+        # Возвращение ответа с правильной кодировкой
+        return Response(
+            json_data,
+            mimetype='application/json',
+            headers={'Content-Disposition': 'attachment;filename=users.json'}
+        )
+    except Exception as e:
+        logger.error(f"Ошибка при экспорте JSON: {e}")
+        flash('Не удалось экспортировать данные в JSON.', 'error')
+        return redirect(url_for('users'))
 
 @app.route('/', methods=['GET', 'POST'])
 @limiter.limit("5 per minute")

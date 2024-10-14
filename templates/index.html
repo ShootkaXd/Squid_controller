@@ -10,45 +10,46 @@
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
 </head>
 
-<nav id="navBar" class="navbar navbar-expand container-fluid">
-    <a class="navbar-brand" href="#">
-        <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
-    </a>
-    <div class="collapse navbar-collapse">
-        <ul class="navbar-nav ml-auto">
-            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('users') }}">Главная</a></li>
-            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/blocked-sites">Заблокированные сайты</a></li>
-            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('system_info') }}">Информация о системе</a></li>
-            <li class="nav-item"><a class="nav-link testB" href="{{url_for('logs')}}">Логи</a></li>
-        </ul>
-    </div>
-</nav>
-
 <body>
-        <div class="container mt-5">
-            <div id="searchContainer" class="mb-3">
-                <input type="text" id="searchInput" class="form-control" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя или IP-адресу">
-            </div>
+    <nav id="navBar" class="navbar navbar-expand container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+                <li class="nav-item"><a class="nav-link testB" href="{{ url_for('users') }}">Главная</a></li>
+                <li class="nav-item"><a class="nav-link testB" href="#" data-url="/blocked-sites">Заблокированные сайты</a></li>
+                <li class="nav-item"><a class="nav-link testB" href="{{ url_for('system_info') }}">Информация о системе</a></li>
+                <li class="nav-item"><a class="nav-link testB" href="{{url_for('logs')}}">Логи</a></li>
+            </ul>
+        </div>
+    </nav>
 
-            <div id="mainTable">
-                <table id="usersTable" class="table table-bordered table-striped table-sm">
-                    <thead>
+    <div class="container mt-5">
+        <div id="searchContainer" class="mb-3 d-flex justify-content-between align-items-center">
+            <input type="text" id="searchInput" class="form-control" onkeyup="filterUsers()" placeholder="Поиск по имени пользователя или IP-адресу">
+        </div>
+
+        <div id="mainTable">
+            <table id="usersTable" class="table table-bordered table-striped table-sm">
+                <thead>
+                    <tr>
+                        <th id="thAli" class="px-5">Статус сети</th>
+                        <th id="thAli">IP-адрес</th>
+                        <th id="thAli">MAC-адрес</th>
+                        <th id="thAli">Сетевое имя</th>
+                        <th id="thAli" class="container">Последний раз в сети</th>
+                        <th id="thAli">Имя пользователя</th>
+                        <th id="thAli">Отдел</th>
+                        <th id="thAli">Номер кабинета</th>
+                        <th id="thAli">Доступ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
                         <tr>
-                            <th id="thAli" class="px-5">Статус сети</th>
-                            <th id="thAli">IP-адрес</th>
-                            <th id="thAli">MAC-адрес</th>
-                            <th id="thAli">Сетевое имя</th>
-                            <th id="thAli" class="container">Последний раз в сети</th>
-                            <th id="thAli">Имя пользователя</th>
-                            <th id="thAli">Отдел</th>
-                            <th id="thAli">Номер кабинета</th>
-                            <th id="thAli">Доступ</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users %}
                             <td id="thAli">
-                                <span class="status-circle {{'status-online' if user.is_online else 'status-offline'}}"></span>
+                                <span class="status-circle {{ 'status-online' if user.is_online else 'status-offline' }}"></span>
                                 {{"В" if user.is_online else "Не в"}} сети
                             </td>
                             <td id="thAli">{{ user.ip }}</td>
@@ -64,11 +65,11 @@
                                 </button>
                             </td>
                         </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
+    </div>
 
     <footer class="footer mt-auto">
         <div class="container text-center">

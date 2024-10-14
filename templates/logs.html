@@ -38,6 +38,13 @@
 </nav>
 <body>
     <h1>Логи Приложения</h1>
+
+        <!-- Кнопки экспорта добавлены здесь -->
+    <div id="exportContainer" class="mb-3">
+        <a href="{{ url_for('export_csv') }}" class="btn btn-success btn-sm ml-3 btn-export">Экспорт в CSV</a>
+        <a href="{{ url_for('export_json') }}" class="btn btn-primary btn-sm ml-3 btn-export">Экспорт в JSON</a>
+    </div>
+
     <div id="log-container">{{ log_content }}</div>
     <button id="refresh-button" onclick="refreshLogs()">Обновить Логи</button>
 </body>
