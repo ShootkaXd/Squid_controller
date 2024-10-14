@@ -8,7 +8,6 @@ import subprocess
 import logging
 import settings
 
-# Настройка логирования вместо использования print
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -24,7 +23,6 @@ async def get_hostname(ip_address):
     if hostname:
         return hostname
 
-    # Можно добавить дополнительные методы получения hostname здесь
     return None
 
 async def get_reverse_dns(ip_address):
@@ -121,17 +119,15 @@ async def update_database_with_devices():
     Обновляет базу данных устройствами, найденными в текущем сканировании.
     """
     try:
-        local_network_ip = settings.scan_network  # Например, '192.168.1.0/24'
+        local_network_ip = settings.scan_network 
         scanned_devices = await scan_local_network(local_network_ip)
         scanned_macs = {device['mac'] for device in scanned_devices if device['mac'] != "Неизвестно"}
 
         async with aiosqlite.connect('access_control.db') as conn:
             async with conn.cursor() as cursor:
-                # Обновляем или вставляем устройства, найденные в текущем сканировании
                 for device in scanned_devices:
                     await upsert_device(cursor, device)
 
-                # Помечаем устройства как оффлайн, которые не были найдены в текущем сканировании
                 await mark_offline_devices(cursor, scanned_macs)
 
                 await conn.commit()
