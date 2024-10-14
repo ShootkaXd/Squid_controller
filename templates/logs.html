@@ -2,11 +2,29 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Логи приложения</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/logs.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/footer.css') }}">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
-    <title>Логи Приложения</title>
+</head>
+
+<body>
+    <nav id="navBar" class="navbar navbar-expand container-fluid">
+        <a class="navbar-brand" href="#">
+            <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
+        </a>
+        <div class="collapse navbar-collapse">
+            <ul class="navbar-nav ml-auto">
+            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('users') }}">Главная</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/blocked-sites">Заблокированные сайты</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('system_info') }}">Информация о системе</a></li>
+            <li class="nav-item"><a class="nav-link testB" href="{{url_for('logs')}}">Логи</a></li>
+            </ul>
+        </div>
+    </nav>
+
     <script>
         function refreshLogs() {
             fetch('{{ url_for("logs") }}')
@@ -22,23 +40,6 @@
 
         setInterval(refreshLogs, 60000);
     </script>
-</head>
-<nav id="navBar" class="navbar navbar-expand container-fluid">
-    <a class="navbar-brand" href="#">
-        <img src="{{ url_for('static', filename='images/icon.png') }}" height="100" alt="icon">
-    </a>
-    <div class="collapse navbar-collapse">
-        <ul class="navbar-nav ml-auto">
-            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('users') }}">Главная</a></li>
-            <li class="nav-item"><a class="nav-link testB" href="#" data-url="/blocked-sites">Заблокированные сайты</a></li>
-            <li class="nav-item"><a class="nav-link testB" href="{{ url_for('system_info') }}">Информация о системе</a></li>
-            <li class="nav-item"><a class="nav-link testB" href="{{url_for('logs')}}">Логи</a></li>
-        </ul>
-    </div>
-</nav>
-<body>
-    <h1>Логи Приложения</h1>
-
         <!-- Кнопки экспорта добавлены здесь -->
     <div id="exportContainer" class="mb-3">
         <a href="{{ url_for('export_csv') }}" class="btn btn-success btn-sm ml-3 btn-export">Экспорт в CSV</a>
@@ -47,5 +48,11 @@
 
     <div id="log-container">{{ log_content }}</div>
     <button id="refresh-button" onclick="refreshLogs()">Обновить Логи</button>
+    <footer class="footer mt-auto">
+        <div class="container text-center">
+            <span class="text-footer">© 2024 Управление доступом в Squid. Все права защищены.</span>
+            <span class="text-footer">Версия: {{ version }} | Авторы: Shootka, Lermontov</span>
+        </div>
+    </footer>
 </body>
 </html>

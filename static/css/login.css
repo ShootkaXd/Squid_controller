@@ -1,7 +1,6 @@
-/* space-login.css */
 body {
-    background-color: #001f3f; /* Dark blue background */
-    color: #ffffff; /* White text */
+    background-color: #001f3f;
+    color: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -21,11 +20,11 @@ body {
    }
 
 .container {
-    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white container */
+    background-color: rgba(255, 255, 255, 0.1);
     padding: 90px;
     max-width: 800px;
     border-radius: 0px;
-    box-shadow: 0 0 20px rgba(240, 232, 232, 0.2); /* White box shadow */
+    box-shadow: 0 0 20px rgba(240, 232, 232, 0.2);
 }
 
 .razdelitel{
@@ -102,5 +101,5 @@ button {
 }
 
 button:hover {
-    background-color: #357edc; /* Darker blue on hover */
+    background-color: #357edc;
 }
