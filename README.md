@@ -110,7 +110,7 @@ To run the program in your local environment
   6. ```python app.py run```
 * Ubuntu
   1. Установить необходимые пакеты ```sudo apt install python3-pip python3-venv git nginx -y```
-  2. Установить Samba ```sudo apt-get install samba```
+  2. Установить Samba ```sudo apt-get install samba``` и ```sudo apt install samba-common-bin```
   3. Установить  ```sudo apt install nmap``` (Если необходимо)
   4. Клонировать репозиторий 
   5. Перейдите в папку проекта ```cd path\to\your```
