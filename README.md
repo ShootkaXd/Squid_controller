@@ -1,121 +1,62 @@
-﻿# Program for managing squid proxy server
+﻿# 🦑 Squid Controller – Web-панель управления прокси-сервером
 
-![PyPI - Version](https://img.shields.io/pypi/v/flask)
-![PyPI - Version](https://img.shields.io/pypi/v/scanpy?color=rgb)
-![PyPI - Version](https://img.shields.io/pypi/v/scapy?color=red)
+![PyPI - Flask](https://img.shields.io/pypi/v/flask)
+![PyPI - Scapy](https://img.shields.io/pypi/v/scapy?color=red)
+![PyPI - Scanpy](https://img.shields.io/pypi/v/scanpy?color=blue)
 
+## 🧩 Описание проекта
 
-**Web application for managing the Squid proxy server**
-* ACL Access Control 
-* System monitoring
-* System Information
-* SIEM system
+**Squid Controller** — это мощное веб-приложение для администрирования и мониторинга прокси-сервера **Squid**, предоставляющее:
 
-# Install
+- 🔐 Контроль доступа по MAC-адресам (ACL)
+- 📡 Мониторинг активности пользователей в реальном времени
+- 🖥️ Просмотр системной информации сервера
+- 📊 SIEM-панель с экспортом логов и пользователей
+- 📁 Интеграция с Nmap и Scapy для обнаружения новых устройств в сети
 
-To run the program in your local environment
+---
 
-    Clone the repository::
-      https://github.com/ShootkaXd/Squid_controller.git
+## 🚀 Возможности
 
-# Getting Started
-    1. python -m venv venv
-    2. npm install chart.js
-    3. pip install Flask-SSLify
-    4. pip install scanpy
-    6. pip install Flask-APScheduler
-    7. pip install flask-socketio
-    8. pip install Flask-Login
-    9. pip install Flask-WTF
-    10. pip install aiosqlite
-    11. pip install scapy
-    12. pip install psutil
-    13. pip install Flask-Limiter
-    14. python -m pip install requests
-    15. pip install Flask-Limiter==1.3.0
-    16. pip install Werkzeug
-    17. pip install flask-admin
-    18. pip install flask-security flask-sqlalchemy
-    19. pip install Flask-SQLAlchemy
-    20. pip install SQLAlchemy
+- Управление доступом через веб-интерфейс
+- Экспорт данных в JSON/CSV
+- Система логирования
+- Фоновое сканирование сети
+- Реализация ограничения запросов (rate limiting)
+- Интеграция с Squid через ACL-файл
+- Локальная работа без интернета (офлайн-режим)
 
-**OR**
+---
 
-    pip install -r requirements.txt
+## ⚙️ Установка
 
-# Starting the server
-* windows
-  1. Configure the host and local network in the ```seting.py``` file
-  2. install ```Nmap```
-  3. open cmd/PowerShall
-  4. go to the project folder ```cd path\to\your```
-  5. activate the virtual environment ```venv\Scripts\activate```
-  6. ```python app.py run```
-* Ubuntu
-   1. Configure the host and local network in the ```seting.py``` file 
-   2. open cmd
-   3. o to the project folder ```cd path\to\your```
-   4. activate the virtual environment ```source venv/bin/activate```
-   5. ```sudo apt install nmap``` (Если необходимо) 
-   6. ```python app.py run```
+> 💡 Вы можете воспользоваться автоматическим установщиком `install_full.sh`, если используете **Ubuntu** (рекомендуется).
 
-#
+### 🐧 Linux (Ubuntu)
 
-**Веб-приложение для управления прокси-сервером Squid**
-* Контроль доступа ACL
-* Мониторинг системы
-* Информация о системе
-* Система SIEM
+```bash
+# Установка зависимостей
+sudo apt update
+sudo apt install -y python3-pip python3-venv apache2 libapache2-mod-wsgi-py3 sqlite3 git unzip nmap
 
-# Установка
+# Клонирование проекта
+git clone https://github.com/ShootkaXd/Squid_controller.git
+cd Squid_controller
 
-Чтобы запустить программу в вашей локальной среде
+# Создание виртуального окружения
+python3 -m venv venv
+source venv/bin/activate
 
-    Клонировать репозиторий:
-      https://github.com/ShootkaXd/Squid_controller.git
+# Установка зависимостей
+pip install -r requirements.txt
 
-# НАЧАЛО
-    1. python -m venv venv
-    2. npm install chart.js
-    3. pip install Flask-SSLify
-    4. pip install scanpy
-    6. pip install Flask-APScheduler
-    7. pip install flask-socketio
-    8. pip install Flask-Login
-    9. pip install Flask-WTF
-    10. pip install aiosqlite
-    11. pip install scapy
-    12. pip install psutil
-    13. pip install Flask-Limiter
-    14. python -m pip install requests
-    15. pip install Flask-Limiter==1.3.0
-    16. pip install Werkzeug
-    17. pip install flask-admin
-    18. pip install flask-security flask-sqlalchemy
-    19. pip install Flask-SQLAlchemy
-    20. pip install SQLAlchemy
-    21. pip install zeroconf
+# Создание базы данных
+python3 -c "from database import db; db.create_all()"
 
-**ИЛИ**
+# Настройка Squid (однократно)
+sudo touch /etc/squid/allowed_macs.acl
+sudo chown proxy:proxy /etc/squid/allowed_macs.acl
+sudo bash -c "echo -e '\nacl allowed_macs arp \"/etc/squid/allowed_macs.acl\"\nhttp_access allow allowed_macs' >> /etc/squid/squid.conf"
+sudo systemctl restart squid
 
-    pip install -r requirements.txt
-
-# Запуск сервера
-* windows
-  1. Настройте хост и локальную сеть в файле ```seting.py```
-  2. Установить ```Nmap``` 
-  3. откройте ```cmd/PowerShall```
-  4. перейдите в папку проекта ```cd path\to\your```
-  5. активируйте виртуальную среду ```venv\Scripts\activate```
-  6. ```python app.py run```
-* Ubuntu
-  1. Установить необходимые пакеты ```sudo apt install python3-pip python3-venv git nginx -y```
-  2. Установить Samba ```sudo apt-get install samba``` и ```sudo apt install samba-common-bin```
-  3. Установить  ```sudo apt install nmap``` (Если необходимо)
-  4. Клонировать репозиторий 
-  5. Перейдите в папку проекта ```cd path\to\your```
-  6. Настройте хост и локальную сеть в файле ```seting.py```
-  7. Создатие виртуального окружения ```python3 -m venv venv```
-  8. Активируйте виртуальную среду ```source venv/bin/activate```
-  9. Установить все зависимости ``` pip install -r requirements.txt ```
-  10. Запустить сервер ```python app.py run```
+# Запуск через Apache (рекомендуется) — см. раздел ниже
